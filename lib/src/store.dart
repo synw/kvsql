@@ -10,7 +10,7 @@ class KvStore {
   /// If an existing [Db] is provided it has to be initialized
   /// with the [kvSchema] before using. If no [Db] is provided
   /// the store wil use it's own database
-  KvStore({this.db, this.verbose = false}) {
+  KvStore({this.db, this.inMemory = false, this.verbose = false}) {
     if (this.db != null) if (this.db.schema.table("kvstore") == null)
       throw (ArgumentError("The kvstore table schema does not exist. " +
           "Please initialize your database with the kvSchema like this:\n" +
@@ -24,12 +24,16 @@ class KvStore {
   /// Verbosity
   bool verbose;
 
+  /// Use an in memory copy of the store
+  bool inMemory;
+
   /// The ready callback
   Future get onReady => _readyCompleter.future;
 
   final Completer _readyCompleter = Completer<Null>();
   Db _db;
   final _changefeed = StreamController<List<dynamic>>.broadcast();
+  Map<String, Map<String, dynamic>> _inMemoryStore;
 
   /// Dispose the store
   void dispose() {
@@ -46,6 +50,17 @@ class KvStore {
       _db.init(path: dbPath, schema: [kvSchema()], verbose: verbose);
     } else
       _db = db;
+    // Initialize the in memory store if needed
+    if (inMemory) {
+      _inMemoryStore = <String, Map<String, dynamic>>{};
+      final List<Map<String, dynamic>> res = await _db.select(table: "kvstore");
+      res.forEach((Map<String, dynamic> item) =>
+          _inMemoryStore[item["key"].toString()] = <String, dynamic>{
+            "value": item["value"],
+            "type": item["type"].toString()
+          });
+    }
+    // Run the queue for the [push] method
     _runQueue();
     _readyCompleter.complete();
   }
@@ -65,6 +80,8 @@ class KvStore {
         "type": typeStr
       };
       id = await _db.insert(table: "kvstore", row: row, verbose: verbose);
+      if (inMemory == true)
+        _inMemoryStore[key] = <String, dynamic>{"value": val, "type": typeStr};
     } catch (e) {
       throw ("Can not insert data $e");
     }
@@ -79,6 +96,7 @@ class KvStore {
     try {
       deleted = await _db.delete(
           table: "kvstore", where: 'key="$key"', verbose: verbose);
+      if (inMemory == true) _inMemoryStore.remove(key);
     } catch (e) {
       throw ("Can not delete data $e");
     }
@@ -93,9 +111,15 @@ class KvStore {
     try {
       final List<String> res = encode(value);
       final String val = res[0];
-      final Map<String, String> row = <String, String>{"value": val};
+      final String typeStr = res[1];
+      final Map<String, String> row = <String, String>{
+        "value": val,
+        "type": typeStr
+      };
       updated = await _db.update(
           table: "kvstore", where: 'key="$key"', row: row, verbose: verbose);
+      if (inMemory == true)
+        _inMemoryStore[key] = <String, dynamic>{"value": val, "type": typeStr};
     } catch (e) {
       throw ("Can not update data $e");
     }
@@ -141,6 +165,8 @@ class KvStore {
         "type": typeStr
       };
       _db.upsert(table: "kvstore", row: row, verbose: verbose);
+      if (inMemory == true)
+        _inMemoryStore[key] = <String, dynamic>{"value": val, "type": typeStr};
     } catch (e) {
       throw ("Can not update data $e");
     }
@@ -154,6 +180,25 @@ class KvStore {
   void push(String key, dynamic value) {
     final List<dynamic> kv = <dynamic>[key, value];
     _changefeed.sink.add(kv);
+    if (inMemory == true) {
+      final List<String> res = encode(value);
+      final String val = res[0];
+      final String typeStr = res[1];
+      _inMemoryStore[key] = <String, dynamic>{"value": val, "type": typeStr};
+    }
+  }
+
+  /// Synchronously get a value from the in memory store
+  dynamic selectSync(String key) {
+    assert(inMemory == true);
+    dynamic value;
+    try {
+      value = decode(
+          _inMemoryStore[key]["value"], _inMemoryStore[key]["type"].toString());
+    } catch (e) {
+      throw ("Can not select data $e");
+    }
+    return value;
   }
 
   Future<void> _runQueue() async {
