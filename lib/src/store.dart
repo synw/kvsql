@@ -52,7 +52,7 @@ class KvStore {
       _db = db;
     // Initialize the in memory store if needed
     if (inMemory) {
-      _inMemoryStore = <String, Map<String, dynamic>>{};
+      _inMemoryStore = <String, dynamic>{};
       final List<Map<String, dynamic>> res = await _db.select(table: "kvstore");
       res.forEach((Map<String, dynamic> item) =>
           _inMemoryStore[item["key"].toString()] =
