@@ -68,3 +68,20 @@ Limitation: this method is executed asynchronously but can not be awaited.
    ```
 
 Check the examples for detailled usage.
+
+## Select sync
+
+Synchronously select a value.
+
+   ```dart
+   final dynamic myValue = store.selectSync("mykey");
+   ```
+
+For this to work you need to initialize the store with the `inMemory` option:
+
+   ```dart
+   store = KvStore(inMemory = true);
+   ```
+
+Note: if you don't await your mutations or use `push` you are exposed to
+eventual consistency using this method
