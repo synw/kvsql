@@ -1,16 +1,69 @@
-# kvsql
+# Kvsql
 
-A new Flutter project.
+A key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://github.com/synw/sqlcool).
 
-## Getting Started
+## Usage
 
-This project is a starting point for a Flutter application.
+### Initialize
 
-A few resources to get you started if this is your first Flutter project:
+   ```dart
+   import 'package:kvsql/kvsql.dart';
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+   store = KvStore();
+   ```
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Initialize with an existing [Sqlcool database](https://github.com/synw/sqlcool):
+
+   ```dart
+   db.init(path: "mydb.db", schema=[KvSchema()]);
+   store = KvStore(db: db);
+   ```
+
+## Insert
+
+   ```dart
+   await store.insert("mykey", "myvalue");
+   ```
+
+Supported value types are: `String`, `int`, `double`, `List`, `Map`
+
+## Update
+
+   ```dart
+   await store.update("mykey", "my_new_value");
+   ```
+
+## Delete
+
+   ```dart
+   await store.delete("mykey");
+   ```
+
+## Select
+
+Returns a typed value
+
+   ```dart
+   final dynamic myValue = await store.select("mykey");
+   ```
+
+## Upsert
+
+Inserts a value if it does not exists or update it otherwise
+
+   ```dart
+    await store.upsert("mykey", "my_new_value");
+   ```
+
+## Push
+
+This method upserts a key/value using a queue: it can be safely
+called concurrently. Useful for high throughput updates.
+
+Limitation: this method is executed asynchronously but can not be awaited.
+
+   ```dart
+    store.push("mykey", "my_value");
+   ```
+
+Check the examples for detailled usage.
