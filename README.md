@@ -10,6 +10,7 @@ A key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://git
    import 'package:kvsql/kvsql.dart';
 
    store = KvStore();
+   await store.onReady;
    ```
 
 Initialize with an existing [Sqlcool database](https://github.com/synw/sqlcool):
