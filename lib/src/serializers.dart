@@ -2,7 +2,6 @@ import 'dart:convert';
 
 /// Encode a value to be stored as a string
 List<String> encode(dynamic value) {
-  assert(value != null);
   String val;
   String typeStr;
   if (value == null)
@@ -35,9 +34,7 @@ List<String> encode(dynamic value) {
 
 /// Decode a database string to it's type
 dynamic decode(dynamic value, String typeStr) {
-  assert(value != null);
-  assert(typeStr != null);
-  if (value == "NULL") return null;
+  if (value == "NULL" || value == null) return null;
   dynamic val;
   switch (typeStr) {
     case "string":
