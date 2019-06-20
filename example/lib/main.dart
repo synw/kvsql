@@ -3,11 +3,13 @@ import 'package:kvsql/kvsql.dart';
 import 'conf.dart';
 import 'simple.dart';
 import 'push.dart';
+import 'in_memory.dart';
 
 final routes = {
   '/': (BuildContext context) => Home(),
   '/simple': (BuildContext context) => Simple(),
   '/push': (BuildContext context) => PushPage(),
+  '/in_memory': (BuildContext context) => InMemoryPage(),
 };
 
 class _HomeState extends State<Home> {
@@ -38,6 +40,11 @@ class _HomeState extends State<Home> {
                         child: const Text("Push"),
                         onPressed: () =>
                             Navigator.of(context).pushNamed("/push")),
+                    const Padding(padding: EdgeInsets.only(bottom: 15.0)),
+                    RaisedButton(
+                        child: const Text("In memory"),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed("/in_memory")),
                   ]))
             : w = const Center(child: CircularProgressIndicator()));
     return w;
