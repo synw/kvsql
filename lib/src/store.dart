@@ -80,8 +80,9 @@ class KvStore {
   /// Returns the id of the new inserted database row
   Future<int> insert(String key, dynamic value) async {
     int id;
+    if (inMemory == true) _inMemoryStore[key] = value;
     final List<String> res = encode(value);
-    final String val = res[0];
+    final String val = res[0] ?? "NULL";
     final String typeStr = res[1];
     try {
       final Map<String, String> row = <String, String>{
@@ -90,7 +91,6 @@ class KvStore {
         "type": typeStr
       };
       id = await _db.insert(table: "kvstore", row: row, verbose: verbose);
-      if (inMemory == true) _inMemoryStore[key] = value;
     } catch (e) {
       throw ("Can not insert data $e");
     }
@@ -118,8 +118,9 @@ class KvStore {
   Future<bool> update(String key, dynamic value) async {
     int updated = 0;
     try {
+      if (inMemory == true) _inMemoryStore[key] = value;
       final List<String> res = encode(value);
-      final String val = res[0];
+      final String val = res[0] ?? "NULL";
       final String typeStr = res[1];
       final Map<String, String> row = <String, String>{
         "value": val,
@@ -127,7 +128,6 @@ class KvStore {
       };
       updated = await _db.update(
           table: "kvstore", where: 'key="$key"', row: row, verbose: verbose);
-      if (inMemory == true) _inMemoryStore[key] = value;
     } catch (e) {
       throw ("Can not update data $e");
     }
@@ -151,7 +151,8 @@ class KvStore {
     }
     try {
       if (res.isNotEmpty) {
-        final dynamic val = res[0]["value"];
+        dynamic val = res[0]["value"];
+        if (val.toString() == "NULL") val = null;
         final String type = res[0]["type"].toString();
         value = decode(val, type);
       }
@@ -164,8 +165,9 @@ class KvStore {
   /// Insert a key or update it if not present
   Future<void> upsert(String key, dynamic value) async {
     try {
+      if (inMemory == true) _inMemoryStore[key] = value;
       final List<String> res = encode(value);
-      final String val = res[0];
+      final String val = res[0] ?? "NULL";
       final String typeStr = res[1];
       final Map<String, String> row = <String, String>{
         "key": key,
@@ -174,7 +176,6 @@ class KvStore {
       };
       _db.update(
           table: "kvstore", row: row, where: 'key="$key"', verbose: verbose);
-      if (inMemory == true) _inMemoryStore[key] = value;
     } catch (e) {
       throw ("Can not update data $e");
     }
@@ -196,7 +197,9 @@ class KvStore {
   /// The [inMemory] option must be set to true when initilializing
   /// the store for this to work
   dynamic selectSync(String key) {
-    assert(inMemory == true);
+    if (!inMemory)
+      throw (ArgumentError("The [inMemory] parameter must be set " +
+          "to true at database initialization"));
     dynamic value;
     try {
       value = _inMemoryStore[key];

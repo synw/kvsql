@@ -4,9 +4,11 @@ import 'dart:convert';
 List<String> encode(dynamic value) {
   String val;
   String typeStr;
-  if (value == null)
+  if (value == null) {
     val = null;
-  else {
+    typeStr = "unknown";
+    return [val, typeStr];
+  } else {
     if (value is String) {
       val = value.toString();
       typeStr = "string";
