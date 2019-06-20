@@ -10,7 +10,11 @@ class KvStore {
   /// If an existing [Db] is provided it has to be initialized
   /// with the [kvSchema] before using. If no [Db] is provided
   /// the store wil use it's own database
-  KvStore({this.db, this.inMemory = false, this.verbose = false}) {
+  KvStore(
+      {this.db,
+      this.inMemory = false,
+      this.path = "kvstore.db",
+      this.verbose = false}) {
     if (this.db != null) if (this.db.schema.table("kvstore") == null)
       throw (ArgumentError("The kvstore table schema does not exist. " +
           "Please initialize your database with the kvSchema like this:\n" +
@@ -19,13 +23,19 @@ class KvStore {
   }
 
   /// The Sqlcool [Db] to use
-  Db db;
+  final Db db;
+
+  /// The location of the db file, relative
+  /// to the documents directory. Used if no database is provided
+  final String path;
 
   /// Verbosity
-  bool verbose;
+  final bool verbose;
 
   /// Use an in memory copy of the store
-  bool inMemory;
+  ///
+  /// Required to use [selectSync]
+  final bool inMemory;
 
   /// The ready callback
   Future get onReady => _readyCompleter.future;
@@ -42,12 +52,14 @@ class KvStore {
 
   /// Initialize the database
   Future<void> _init() async {
+    /// [path] is the location of the database file, relative
+    /// to the documents directory
     if (db == null) {
       _db = Db();
       final Directory documentsDirectory =
           await getApplicationDocumentsDirectory();
-      final String dbPath = documentsDirectory.path + "/kvstore.db";
-      _db.init(path: dbPath, schema: [kvSchema()], verbose: verbose);
+      final String dbPath = documentsDirectory.path + "/$path";
+      await _db.init(path: dbPath, schema: [kvSchema()], verbose: verbose);
     } else
       _db = db;
     // Initialize the in memory store if needed
@@ -160,7 +172,8 @@ class KvStore {
         "value": val,
         "type": typeStr
       };
-      _db.upsert(table: "kvstore", row: row, verbose: verbose);
+      _db.update(
+          table: "kvstore", row: row, where: 'key="$key"', verbose: verbose);
       if (inMemory == true) _inMemoryStore[key] = value;
     } catch (e) {
       throw ("Can not update data $e");
