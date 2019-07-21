@@ -1,5 +1,7 @@
 # Kvsql
 
+[![pub package](https://img.shields.io/pub/v/kvsql.svg)](https://pub.dartlang.org/packages/kvsql)
+
 A key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://github.com/synw/sqlcool).
 
 ## Usage
@@ -83,7 +85,7 @@ For this to work you need to initialize the store with the `inMemory` option tha
    store = KvStore(inMemory = true);
    ```
 
-Note: if you don't await your mutations or use `push` you are exposed to
+*Note*: if you don't await your mutations or use `push` you are exposed to
 eventual consistency using this method
 
 Typed values select sync are available:
