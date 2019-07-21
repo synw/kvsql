@@ -77,7 +77,7 @@ Synchronously select a value.
    final dynamic myValue = store.selectSync("mykey");
    ```
 
-For this to work you need to initialize the store with the `inMemory` option:
+For this to work you need to initialize the store with the `inMemory` option that keeps an in memory copy of the store values.
 
    ```dart
    store = KvStore(inMemory = true);
@@ -85,3 +85,13 @@ For this to work you need to initialize the store with the `inMemory` option:
 
 Note: if you don't await your mutations or use `push` you are exposed to
 eventual consistency using this method
+
+Typed values select sync are available:
+
+   ```dart
+   final double myValue = store.selectDoubleSync("mykey");
+   final int myValue = store.selectIntegerSync("mykey");
+   final String myValue = store.selectStringSync("mykey");
+   final List myValue = store.selectListSync("mykey");
+   final Map myValue = store.selectMapSync("mykey");
+   ```
