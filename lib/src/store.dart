@@ -16,12 +16,13 @@ class KvStore {
       this.inMemory = false,
       this.path = "kvstore.db",
       this.verbose = false}) {
-    assert(db != null);
-    assert(db.schema != null);
-    if (this.db.schema.table("kvstore") == null) {
-      throw (ArgumentError("The kvstore table schema does not exist. " +
-          "Please initialize your database with the kvSchema like this:\n" +
-          'db.init(path: "dbname.db", schema: [kvSchema()])'));
+    if (db != null) {
+      assert(db.schema != null);
+      if (this.db.schema.table("kvstore") == null) {
+        throw (ArgumentError("The kvstore table schema does not exist. " +
+            "Please initialize your database with the kvSchema like this:\n" +
+            'db.init(path: "dbname.db", schema: [kvSchema()])'));
+      }
     }
     _init();
   }
