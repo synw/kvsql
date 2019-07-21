@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:sqlcool/sqlcool.dart';
 import 'serializers.dart';
 import 'schema.dart';
@@ -15,10 +16,13 @@ class KvStore {
       this.inMemory = false,
       this.path = "kvstore.db",
       this.verbose = false}) {
-    if (this.db != null) if (this.db.schema.table("kvstore") == null)
+    assert(db != null);
+    assert(db.schema != null);
+    if (this.db.schema.table("kvstore") == null) {
       throw (ArgumentError("The kvstore table schema does not exist. " +
           "Please initialize your database with the kvSchema like this:\n" +
           'db.init(path: "dbname.db", schema: [kvSchema()])'));
+    }
     _init();
   }
 
@@ -60,8 +64,9 @@ class KvStore {
           await getApplicationDocumentsDirectory();
       final String dbPath = documentsDirectory.path + "/$path";
       await _db.init(path: dbPath, schema: [kvSchema()], verbose: verbose);
-    } else
+    } else {
       _db = db;
+    }
     // Initialize the in memory store if needed
     if (inMemory) {
       _inMemoryStore = <String, dynamic>{};
@@ -71,7 +76,7 @@ class KvStore {
               decode(item["value"], item["type"].toString()));
     }
     // Run the queue for the [push] method
-    _runQueue();
+    unawaited(_runQueue());
     _readyCompleter.complete();
   }
 
@@ -174,8 +179,12 @@ class KvStore {
         "value": val,
         "type": typeStr
       };
-      _db.update(
-          table: "kvstore", row: row, where: 'key="$key"', verbose: verbose);
+      await _db
+          .update(
+              table: "kvstore", row: row, where: 'key="$key"', verbose: verbose)
+          .catchError((dynamic e) {
+        throw ("Can not update store $e");
+      });
     } catch (e) {
       throw ("Can not update data $e");
     }
@@ -197,9 +206,10 @@ class KvStore {
   /// The [inMemory] option must be set to true when initilializing
   /// the store for this to work
   dynamic selectSync(String key) {
-    if (!inMemory)
+    if (!inMemory) {
       throw (ArgumentError("The [inMemory] parameter must be set " +
           "to true at database initialization"));
+    }
     dynamic value;
     try {
       value = _inMemoryStore[key];
@@ -238,7 +248,7 @@ class KvStore {
     await for (final item in _changefeed.stream) {
       final String k = item[0].toString();
       final dynamic v = item[1];
-      upsert(k, v);
+      unawaited(upsert(k, v));
     }
   }
 }

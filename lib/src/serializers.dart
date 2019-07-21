@@ -43,35 +43,35 @@ dynamic decode(dynamic value, String typeStr) {
       try {
         val = value;
       } catch (e) {
-        throw (e);
+        rethrow;
       }
       break;
     case "integer":
       try {
         val = int.parse(value.toString());
       } catch (e) {
-        throw (e);
+        rethrow;
       }
       break;
     case "double":
       try {
         val = double.parse(value.toString());
       } catch (e) {
-        throw (e);
+        rethrow;
       }
       break;
     case "list":
       try {
         val = value.split(",");
       } catch (e) {
-        throw (e);
+        rethrow;
       }
       break;
     case "map":
       try {
         val = json.decode(value.toString());
       } catch (e) {
-        throw (e);
+        rethrow;
       }
       break;
     default:
