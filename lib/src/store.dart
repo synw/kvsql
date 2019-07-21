@@ -209,6 +209,31 @@ class KvStore {
     return value;
   }
 
+  /// synchronously select a double
+  double selectDoubleSync(String key) {
+    return double.tryParse(selectSync(key).toString());
+  }
+
+  /// synchronously select an integer
+  int selectIntegerSync(String key) {
+    return int.tryParse(selectSync(key).toString());
+  }
+
+  /// synchronously select a string
+  String selectStringSync(String key) {
+    return selectSync(key).toString();
+  }
+
+  /// synchronously select a map
+  Map selectMapSync(String key) {
+    return selectSync(key) as Map;
+  }
+
+  /// synchronously select a list
+  List selectListSync(String key) {
+    return selectSync(key) as List;
+  }
+
   Future<void> _runQueue() async {
     await for (final item in _changefeed.stream) {
       final String k = item[0].toString();
