@@ -49,15 +49,30 @@ class _InMemoryPageState extends State<InMemoryPage> {
                       Column(
                         children: <Widget>[
                           const Text("String value:"),
-                          SelectValue(store: store, valueName: "string_value"),
+                          SelectValue(
+                              store: store,
+                              valueName: "string_value",
+                              type: "string"),
                           const Text("Int value:"),
-                          SelectValue(store: store, valueName: "int_value"),
+                          SelectValue(
+                              store: store,
+                              valueName: "int_value",
+                              type: "integer"),
                           const Text("Double value:"),
-                          SelectValue(store: store, valueName: "double_value"),
+                          SelectValue(
+                              store: store,
+                              valueName: "double_value",
+                              type: "double"),
                           const Text("List value:"),
-                          SelectValue(store: store, valueName: "list_value"),
+                          SelectValue(
+                              store: store,
+                              valueName: "list_value",
+                              type: "list"),
                           const Text("Map value:"),
-                          SelectValue(store: store, valueName: "map_value"),
+                          SelectValue(
+                              store: store,
+                              valueName: "map_value",
+                              type: "map"),
                         ],
                       )
                     ])
@@ -72,13 +87,33 @@ class InMemoryPage extends StatefulWidget {
 }
 
 class SelectValue extends StatelessWidget {
-  SelectValue({@required this.valueName, @required this.store});
+  SelectValue(
+      {@required this.valueName, @required this.store, @required this.type});
   final KvStore store;
   final String valueName;
+  final String type;
 
   @override
   Widget build(BuildContext context) {
-    final dynamic value = store.selectSync(valueName);
+    dynamic value;
+    switch (type) {
+      case "string":
+        value = store.selectStringSync(valueName);
+        break;
+      case "integer":
+        value = store.selectIntegerSync(valueName);
+        break;
+      case "double":
+        value = store.selectDoubleSync(valueName);
+        break;
+      case "list":
+        value = store.selectListSync(valueName);
+        break;
+      case "map":
+        value = store.selectMapSync(valueName);
+        break;
+      default:
+    }
     final dynamic valueType = value.runtimeType;
     return Padding(
         padding: const EdgeInsets.only(bottom: 10.0),
