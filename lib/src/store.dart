@@ -161,6 +161,8 @@ class KvStore {
         if (val.toString() == "NULL") val = null;
         final String type = res[0]["type"].toString();
         value = decode(val, type);
+      } else {
+        return null;
       }
     } catch (e) {
       throw ("Can not decode data from $res : $e");
@@ -209,11 +211,15 @@ class KvStore {
   dynamic selectSync(String key) {
     if (!inMemory) {
       throw (ArgumentError("The [inMemory] parameter must be set " +
-          "to true at database initialization"));
+          "to true at database initialization to use select sync methods"));
     }
     dynamic value;
     try {
-      value = _inMemoryStore[key];
+      if (_inMemoryStore.containsKey(key) == true) {
+        value = _inMemoryStore[key];
+      } else {
+        return null;
+      }
     } catch (e) {
       throw ("Can not select data $e");
     }
@@ -222,26 +228,41 @@ class KvStore {
 
   /// synchronously select a double
   double selectDoubleSync(String key) {
+    if (selectSync(key) == null) {
+      return null;
+    }
     return double.tryParse(selectSync(key).toString());
   }
 
   /// synchronously select an integer
   int selectIntegerSync(String key) {
+    if (selectSync(key) == null) {
+      return null;
+    }
     return int.tryParse(selectSync(key).toString());
   }
 
   /// synchronously select a string
   String selectStringSync(String key) {
+    if (selectSync(key) == null) {
+      return null;
+    }
     return selectSync(key).toString();
   }
 
   /// synchronously select a map
   Map selectMapSync(String key) {
+    if (selectSync(key) == null) {
+      return null;
+    }
     return selectSync(key) as Map;
   }
 
   /// synchronously select a list
   List selectListSync(String key) {
+    if (selectSync(key) == null) {
+      return null;
+    }
     return selectSync(key) as List;
   }
 
