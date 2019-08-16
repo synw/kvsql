@@ -182,8 +182,7 @@ class KvStore {
         "type": typeStr
       };
       await _db
-          .update(
-              table: "kvstore", row: row, where: 'key="$key"', verbose: verbose)
+          .upsert(table: "kvstore", row: row, verbose: verbose)
           .catchError((dynamic e) {
         throw ("Can not update store $e");
       });
