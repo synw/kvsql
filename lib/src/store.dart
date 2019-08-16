@@ -61,14 +61,12 @@ class KvStore {
     /// to the documents directory
     if (db == null) {
       _db = Db();
-      final Directory documentsDirectory =
-          await getApplicationDocumentsDirectory();
-      final String dbPath = documentsDirectory.path + "/$path";
-      await _db.init(path: dbPath, schema: [kvSchema()], verbose: verbose);
+      await _db.init(path: path, schema: [kvSchema()], verbose: verbose);
     } else {
       _db = db;
     }
-    // Initialize the in memory store if needed
+
+    /// Initialize the in memory store if needed
     if (inMemory) {
       _inMemoryStore = <String, dynamic>{};
       final List<Map<String, dynamic>> res = await _db.select(table: "kvstore");
@@ -76,7 +74,8 @@ class KvStore {
           _inMemoryStore[item["key"].toString()] =
               decode(item["value"], item["type"].toString()));
     }
-    // Run the queue for the [push] method
+
+    /// Run the queue for the [push] method
     unawaited(_runQueue());
     _readyCompleter.complete();
   }
@@ -222,6 +221,9 @@ class KvStore {
       }
     } catch (e) {
       throw ("Can not select data $e");
+    }
+    if (verbose) {
+      print("# KVstore: select $key : $value");
     }
     return value;
   }
