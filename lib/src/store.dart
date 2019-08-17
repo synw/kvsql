@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:sqlcool/sqlcool.dart';
 import 'serializers.dart';
