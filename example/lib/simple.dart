@@ -6,7 +6,7 @@ class _SimpleState extends State<Simple> {
   bool inserted = false;
 
   Future<void> updateUi() async {
-    final dynamic v = await store.select("key");
+    final v = await store.select<Map<String, dynamic>>("key");
     setState(() {
       if (v == null) {
         value = "";
@@ -30,7 +30,9 @@ class _SimpleState extends State<Simple> {
                     child: const Text("Insert key"),
                     onPressed: () {
                       final val = <String, int>{"one": 1, "two": 2};
-                      store.insert("key", val).then((_) => updateUi());
+                      store
+                          .upsert<Map<String, int>>("key", val)
+                          .then((_) => updateUi());
                       inserted = true;
                     },
                   ),
@@ -40,7 +42,9 @@ class _SimpleState extends State<Simple> {
                     child: const Text("Update key"),
                     onPressed: () {
                       final val = <String, int>{"one": 10, "two": 20};
-                      store.update("key", val).then((_) => updateUi());
+                      store
+                          .update<Map<String, int>>("key", val)
+                          .then((_) => updateUi());
                     },
                   ),
                 const Padding(padding: EdgeInsets.only(bottom: 10.0)),
