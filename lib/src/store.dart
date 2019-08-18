@@ -26,7 +26,7 @@ class KvStore {
   }
 
   /// The Sqlcool [Db] to use
-  final Db db;
+  Db db;
 
   /// The location of the db file, relative
   /// to the documents directory. Used if no database is provided
@@ -59,6 +59,7 @@ class KvStore {
     /// to the documents directory
     if (db == null) {
       _db = Db();
+      db = _db;
       await _db.init(path: path, schema: [kvSchema()], verbose: verbose);
     } else {
       _db = db;
@@ -66,6 +67,11 @@ class KvStore {
 
     /// Initialize the in memory store if needed
     if (inMemory) {
+      await _db.onReady;
+      /*String query = "SELECT name FROM sqlite_master WHERE " +
+          "type ='table' AND name NOT LIKE 'sqlite_%';";
+      final t = await db.query(query);
+      print("---- TABLES $t");*/
       _inMemoryStore = <String, dynamic>{};
       final List<Map<String, dynamic>> res = await _db.select(table: "kvstore");
       res.forEach((Map<String, dynamic> item) =>
@@ -81,7 +87,11 @@ class KvStore {
   /// Insert a key/value pair into the database
   ///
   /// Returns the id of the new inserted database row
-  Future<int> insert(String key, dynamic value) async {
+  Future<int> insert<T>(String key, dynamic value) async {
+    if (!(value is T)) {
+      throw ArgumentError(
+          "The value is of type ${value.runtimeType} and should be $T");
+    }
     int id;
     if (inMemory == true) _inMemoryStore[key] = value;
     final List<String> res = encode(value);
@@ -118,7 +128,11 @@ class KvStore {
   /// Update a key to a new value
   ///
   /// Return true if the key has been updated
-  Future<bool> update(String key, dynamic value) async {
+  Future<bool> update<T>(String key, dynamic value) async {
+    if (!(value is T)) {
+      throw ArgumentError(
+          "The value is of type ${value.runtimeType} and should be $T");
+    }
     int updated = 0;
     try {
       if (inMemory == true) _inMemoryStore[key] = value;
@@ -140,7 +154,7 @@ class KvStore {
   }
 
   /// Get a value from a key
-  Future<dynamic> select(String key) async {
+  Future<T> select<T>(String key) async {
     dynamic value;
     List<Map<String, dynamic>> res;
     try {
@@ -164,12 +178,19 @@ class KvStore {
     } catch (e) {
       throw ("Can not decode data from $res : $e");
     }
-    return value;
+    if (!(value is T)) {
+      throw ("Value is of type ${value.runtimeType} and should be $T");
+    }
+    return value as T;
   }
 
   /// Insert a key or update it if not present
-  Future<void> upsert(String key, dynamic value) async {
+  Future<void> upsert<T>(String key, dynamic value) async {
     try {
+      if (!(value is T)) {
+        throw (ArgumentError(
+            "The value is of type ${value.runtimeType} and should be $T"));
+      }
       if (inMemory == true) _inMemoryStore[key] = value;
       final List<String> res = encode(value);
       final String val = res[0] ?? "NULL";
@@ -194,7 +215,11 @@ class KvStore {
   /// Limitation: this method runs asynchronously but can not be awaited.
   /// The queries are queued so this method can
   /// be safely called concurrently
-  void push(String key, dynamic value) {
+  void push<T>(String key, dynamic value) {
+    if (!(value is T)) {
+      throw (ArgumentError(
+          "The value is of type ${value.runtimeType} and should be $T"));
+    }
     final List<dynamic> kv = <dynamic>[key, value];
     _changefeed.sink.add(kv);
     if (inMemory == true) _inMemoryStore[key] = value;
@@ -204,7 +229,7 @@ class KvStore {
   ///
   /// The [inMemory] option must be set to true when initilializing
   /// the store for this to work
-  dynamic selectSync(String key) {
+  T selectSync<T>(String key) {
     if (!inMemory) {
       throw (ArgumentError("The [inMemory] parameter must be set " +
           "to true at database initialization to use select sync methods"));
@@ -213,6 +238,10 @@ class KvStore {
     try {
       if (_inMemoryStore.containsKey(key) == true) {
         value = _inMemoryStore[key];
+        if (!(value is T)) {
+          throw (ArgumentError("The selected value is of type " +
+              "${value.runtimeType} and should be $T"));
+        }
       } else {
         return null;
       }
@@ -222,54 +251,23 @@ class KvStore {
     if (verbose) {
       print("# KVstore: select $key : $value");
     }
-    return value;
-  }
-
-  /// synchronously select a double
-  double selectDoubleSync(String key) {
-    if (selectSync(key) == null) {
+    if (value == null) {
       return null;
     }
-    return double.tryParse(selectSync(key).toString());
-  }
-
-  /// synchronously select an integer
-  int selectIntegerSync(String key) {
-    if (selectSync(key) == null) {
-      return null;
-    }
-    return int.tryParse(selectSync(key).toString());
-  }
-
-  /// synchronously select a string
-  String selectStringSync(String key) {
-    if (selectSync(key) == null) {
-      return null;
-    }
-    return selectSync(key).toString();
+    return value as T;
   }
 
   /// synchronously select a map
-  Map selectMapSync(String key) {
-    if (selectSync(key) == null) {
-      return null;
-    }
-    return selectSync(key) as Map;
-  }
+  Map<T, T2> selectMapSync<T, T2>(String key) => selectSync<Map<T, T2>>(key);
 
   /// synchronously select a list
-  List selectListSync(String key) {
-    if (selectSync(key) == null) {
-      return null;
-    }
-    return selectSync(key) as List;
-  }
+  List<T> selectListSync<T>(String key) => selectSync<List<T>>(key);
 
   Future<void> _runQueue() async {
     await for (final item in _changefeed.stream) {
       final String k = item[0].toString();
       final dynamic v = item[1];
-      unawaited(upsert(k, v));
+      unawaited(upsert<dynamic>(k, v));
     }
   }
 }
