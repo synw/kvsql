@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:kvsql/kvsql.dart';
 import 'conf.dart';
-import 'simple.dart';
+import 'map.dart';
+import 'list.dart';
 import 'push.dart';
 import 'in_memory.dart';
 
 final routes = {
   '/': (BuildContext context) => Home(),
-  '/simple': (BuildContext context) => Simple(),
+  '/simple_list': (BuildContext context) => SimpleList(),
+  '/simple_map': (BuildContext context) => SimpleMap(),
   '/push': (BuildContext context) => PushPage(),
   '/in_memory': (BuildContext context) => InMemoryPage(),
 };
@@ -32,9 +34,14 @@ class _HomeState extends State<Home> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                     RaisedButton(
-                        child: const Text("Simple"),
+                        child: const Text("Simple list"),
                         onPressed: () =>
-                            Navigator.of(context).pushNamed("/simple")),
+                            Navigator.of(context).pushNamed("/simple_list")),
+                    const Padding(padding: EdgeInsets.only(bottom: 15.0)),
+                    RaisedButton(
+                        child: const Text("Simple map"),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed("/simple_map")),
                     const Padding(padding: EdgeInsets.only(bottom: 15.0)),
                     RaisedButton(
                         child: const Text("Push"),

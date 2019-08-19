@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'conf.dart';
 
-class _SimpleState extends State<Simple> {
+class _SimpleListState extends State<SimpleList> {
   String value = "";
   bool inserted = false;
 
   Future<void> updateUi() async {
-    final v = await store.select<Map<String, dynamic>>("key");
+    final v = await store.selectList<int>("key55");
     setState(() {
       if (v == null) {
         value = "";
@@ -27,11 +27,11 @@ class _SimpleState extends State<Simple> {
                 const Padding(padding: EdgeInsets.only(bottom: 10.0)),
                 if (inserted == false)
                   RaisedButton(
-                    child: const Text("Insert key"),
+                    child: const Text("List"),
                     onPressed: () {
-                      final val = <String, int>{"one": 1, "two": 2};
+                      final val = <int>[1, 2, 3];
                       store
-                          .upsert<Map<String, int>>("key", val)
+                          .upsert<List<int>>("key55", val)
                           .then((_) => updateUi());
                       inserted = true;
                     },
@@ -41,9 +41,9 @@ class _SimpleState extends State<Simple> {
                   RaisedButton(
                     child: const Text("Update key"),
                     onPressed: () {
-                      final val = <String, int>{"one": 10, "two": 20};
+                      final val = <int>[1, 2, 3, 4, 5];
                       store
-                          .update<Map<String, int>>("key", val)
+                          .update<List<int>>("key55", val)
                           .then((_) => updateUi());
                     },
                   ),
@@ -52,7 +52,7 @@ class _SimpleState extends State<Simple> {
                   RaisedButton(
                       child: const Text("Delete key"),
                       onPressed: () {
-                        store.delete("key").then((_) => updateUi());
+                        store.delete("key55").then((_) => updateUi());
                         inserted = false;
                       }),
                 const Padding(padding: EdgeInsets.only(bottom: 10.0)),
@@ -62,7 +62,7 @@ class _SimpleState extends State<Simple> {
   }
 }
 
-class Simple extends StatefulWidget {
+class SimpleList extends StatefulWidget {
   @override
-  _SimpleState createState() => _SimpleState();
+  _SimpleListState createState() => _SimpleListState();
 }

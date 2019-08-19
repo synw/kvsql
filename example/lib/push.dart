@@ -17,11 +17,10 @@ class _PushPageState extends State<PushPage> {
   }
 
   Future<int> getInitialData() async {
-    final int s = await store.select<int>("squares");
-    print("S $s");
-    final int n = int.tryParse(s.toString()) ?? 0;
-    print("N $n");
-    return n;
+    final dynamic n = await store.selectDynamic("squares");
+    final v = int.parse(n.toString());
+    print("Value $v");
+    return v;
   }
 
   Future<void> buildSquares() async {
@@ -29,13 +28,13 @@ class _PushPageState extends State<PushPage> {
     while (currentSquares != maxSquares) {
       if (!running) return;
       await Future<dynamic>.delayed(Duration(milliseconds: 50));
-      store.push<int>("squares", currentSquares);
+      store.push("squares", currentSquares);
       setState(() => currentSquares++);
     }
     // reset if full
     if (currentSquares == maxSquares) {
       setState(() => currentSquares = 0);
-      store.push<int>("squares", 0);
+      store.push("squares", 0);
       buildSquares();
     }
   }
