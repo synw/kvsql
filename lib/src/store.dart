@@ -40,18 +40,13 @@ class KvStore {
   /// Required to use [selectSync]
   final bool inMemory;
 
-  /// The ready callback
-  Future get onReady => _readyCompleter.future;
-
   final Completer _readyCompleter = Completer<Null>();
   Db _db;
   final _changefeed = StreamController<List<dynamic>>.broadcast();
   Map<String, dynamic> _inMemoryStore;
 
-  /// Dispose the store
-  void dispose() {
-    _changefeed.close();
-  }
+  /// The ready callback
+  Future get onReady => _readyCompleter.future;
 
   /// Initialize the database
   Future<void> _init() async {
@@ -68,15 +63,11 @@ class KvStore {
     /// Initialize the in memory store if needed
     if (inMemory) {
       await _db.onReady;
-      /*String query = "SELECT name FROM sqlite_master WHERE " +
-          "type ='table' AND name NOT LIKE 'sqlite_%';";
-      final t = await db.query(query);
-      print("---- TABLES $t");*/
       _inMemoryStore = <String, dynamic>{};
       final List<Map<String, dynamic>> res = await _db.select(table: "kvstore");
       res.forEach((Map<String, dynamic> item) =>
-          _inMemoryStore[item["key"].toString()] =
-              decode(item["value"], item["type"].toString()));
+          _inMemoryStore[item["key"].toString()] = decodeFromTypeStr<dynamic>(
+              item["value"], item["type"].toString()));
     }
 
     /// Run the queue for the [push] method
@@ -153,48 +144,111 @@ class KvStore {
     return ok;
   }
 
+  /// Get a map value from a key
+  ///
+  /// <K> is the map key type and <V> is the map value type
+  Future<Map<K, V>> selectMap<K, V>(String key) async {
+    final res = await _selectQuery(key);
+    if (res == null) {
+      return null;
+    }
+    final Map<K, V> result = decodeMap<K, V>(res["value"]);
+    return result;
+  }
+
+  /// Get a list value from a key
+  ///
+  /// <T> is the list content type
+  Future<List<T>> selectList<T>(String key) async {
+    final res = await _selectQuery(key);
+    if (res == null) {
+      return null;
+    }
+    final List<T> result = decodeList<T>(res["value"]);
+    return result;
+  }
+
   /// Get a value from a key
   Future<T> select<T>(String key) async {
-    dynamic value;
-    List<Map<String, dynamic>> res;
-    try {
-      res = await _db.select(
-          table: "kvstore",
-          columns: "key,value,type",
-          where: 'key="$key"',
-          verbose: verbose);
-    } catch (e) {
-      throw ("Can not select data $e");
+    return _select<T>(key);
+  }
+
+  /// Get a value from a key
+  Future selectDynamic(String key) async {
+    return _select<dynamic>(key, untyped: true);
+  }
+
+  Future<T> _select<T>(String key, {bool untyped = false}) async {
+    if (!untyped) {
+      if (T == dynamic) {
+        throw (ArgumentError("Please provide a non dynamic type"));
+      }
     }
+    if (T is Map) {
+      throw (ArgumentError("Please use selectMap<K, V> for maps data type"));
+    } else if (T is List) {
+      throw (ArgumentError("Please use selectList<T> for lists data type"));
+    }
+    final res = await _selectQuery(key);
+    T value;
     try {
-      if (res.isNotEmpty) {
-        dynamic val = res[0]["value"];
+      if (res != null) {
+        dynamic val = res["value"];
         if (val.toString() == "NULL") val = null;
-        final String type = res[0]["type"].toString();
-        value = decode(val, type);
+        if (!untyped) {
+          final String type = res[0]["type"].toString();
+          value = decodeFromTypeStr<T>(val, type);
+        } else {
+          value = val as T;
+        }
       } else {
         return null;
       }
     } catch (e) {
       throw ("Can not decode data from $res : $e");
     }
-    if (!(value is T)) {
-      throw ("Value is of type ${value.runtimeType} and should be $T");
+    if (T != dynamic) {
+      if (!(value is T)) {
+        throw ("Value is of type ${value.runtimeType} and should be $T");
+      }
     }
-    return value as T;
+    return value;
+  }
+
+  Future<Map<String, dynamic>> _selectQuery(String key) async {
+    Map<String, dynamic> res;
+    try {
+      final qres = await _db.select(
+          table: "kvstore",
+          columns: "key,value,type",
+          where: 'key="$key"',
+          verbose: verbose);
+      if (qres.isEmpty) {
+        return null;
+      }
+      res = qres[0];
+    } catch (e) {
+      throw ("Can not select data $e");
+    }
+    return res;
   }
 
   /// Insert a key or update it if not present
   Future<void> upsert<T>(String key, dynamic value) async {
+    if (!(value is T)) {
+      throw (ArgumentError(
+          "The value is of type ${value.runtimeType} and should be $T"));
+    }
     try {
-      if (!(value is T)) {
-        throw (ArgumentError(
-            "The value is of type ${value.runtimeType} and should be $T"));
-      }
       if (inMemory == true) _inMemoryStore[key] = value;
-      final List<String> res = encode(value);
-      final String val = res[0] ?? "NULL";
-      final String typeStr = res[1];
+      List<String> encoded;
+      try {
+        encoded = encode(value as T);
+      } catch (e) {
+        throw ("Encding $value failed: $e");
+      }
+      final String val = encoded[0] ?? "NULL";
+      final String typeStr = encoded[1];
       final Map<String, String> row = <String, String>{
         "key": key,
         "value": val,
@@ -206,7 +260,7 @@ class KvStore {
         throw ("Can not update store $e");
       });
     } catch (e) {
-      throw ("Can not update data $e");
+      throw ("Can not upsert data $e");
     }
   }
 
@@ -215,14 +269,21 @@ class KvStore {
   /// Limitation: this method runs asynchronously but can not be awaited.
   /// The queries are queued so this method can
   /// be safely called concurrently
-  void push<T>(String key, dynamic value) {
-    if (!(value is T)) {
-      throw (ArgumentError(
-          "The value is of type ${value.runtimeType} and should be $T"));
-    }
+  void push(String key, dynamic value) {
     final List<dynamic> kv = <dynamic>[key, value];
     _changefeed.sink.add(kv);
     if (inMemory == true) _inMemoryStore[key] = value;
+  }
+
+  /// Count the keys in the store
+  Future<int> count() async {
+    int n = 0;
+    try {
+      n = await _db.count(table: "kvstore");
+    } catch (e) {
+      throw ("Can not count keys in the store $e");
+    }
+    return n;
   }
 
   /// Synchronously get a value from the in memory store
@@ -269,5 +330,10 @@ class KvStore {
       final dynamic v = item[1];
       unawaited(upsert<dynamic>(k, v));
     }
+  }
+
+  /// Dispose the store
+  void dispose() {
+    _changefeed.close();
   }
 }
