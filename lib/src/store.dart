@@ -78,10 +78,9 @@ class KvStore {
   /// Insert a key/value pair into the database
   ///
   /// Returns the id of the new inserted database row
-  Future<int> insert<T>(String key, dynamic value) async {
-    if (!(value is T)) {
-      throw ArgumentError(
-          "The value is of type ${value.runtimeType} and should be $T");
+  Future<int> insert<T>(String key, T value) async {
+    if (!(value == dynamic)) {
+      throw ArgumentError("Please provide a non dynamic type");
     }
     int id;
     if (inMemory == true) _inMemoryStore[key] = value;
@@ -119,7 +118,7 @@ class KvStore {
   /// Update a key to a new value
   ///
   /// Return true if the key has been updated
-  Future<bool> update<T>(String key, dynamic value) async {
+  Future<bool> update<T>(String key, T value) async {
     if (!(value is T)) {
       throw ArgumentError(
           "The value is of type ${value.runtimeType} and should be $T");
@@ -234,7 +233,7 @@ class KvStore {
   }
 
   /// Insert a key or update it if not present
-  Future<void> upsert<T>(String key, dynamic value) async {
+  Future<void> upsert<T>(String key, T value) async {
     if (!(value is T)) {
       throw (ArgumentError(
           "The value is of type ${value.runtimeType} and should be $T"));
@@ -243,7 +242,7 @@ class KvStore {
       if (inMemory == true) _inMemoryStore[key] = value;
       List<String> encoded;
       try {
-        encoded = encode(value as T);
+        encoded = encode(value);
       } catch (e) {
         throw ("Encding $value failed: $e");
       }

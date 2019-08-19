@@ -25,7 +25,11 @@ List<String> encode(dynamic value) {
       val = value.join(",");
       typeStr = "list";
     } else if (value is Map) {
-      val = json.encode(value);
+      final strMap = <String, dynamic>{};
+      value.forEach((dynamic k, dynamic v) {
+        strMap["$k"] = v;
+      });
+      val = json.encode(strMap);
       typeStr = "map";
     } else {
       val = "$val";
