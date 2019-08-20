@@ -195,7 +195,7 @@ class KvStore {
         dynamic val = res["value"];
         if (val.toString() == "NULL") val = null;
         if (!untyped) {
-          final String type = res[0]["type"].toString();
+          final String type = res["type"].toString();
           value = decodeFromTypeStr<T>(val, type);
         } else {
           value = val as T;
