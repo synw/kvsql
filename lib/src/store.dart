@@ -79,7 +79,7 @@ class KvStore {
   ///
   /// Returns the id of the new inserted database row
   Future<int> insert<T>(String key, T value) async {
-    if (!(value == dynamic)) {
+    if (!(value is T)) {
       throw ArgumentError("Please provide a non dynamic type");
     }
     int id;
@@ -283,6 +283,26 @@ class KvStore {
       throw ("Can not count keys in the store $e");
     }
     return n;
+  }
+
+  /// Check if a key exists in the store
+  Future<bool> hasKey(String key) async {
+    var has = false;
+    try {
+      if (inMemory) {
+        if (_inMemoryStore.containsKey(key)) {
+          has = true;
+        }
+      } else {
+        final n = await _db.count(table: "kvstore", where: 'key="$key"');
+        if (n > 0) {
+          has = true;
+        }
+      }
+    } catch (e) {
+      throw ("Can not check hasKey in the store $e");
+    }
+    return has;
   }
 
   /// Synchronously get a value from the in memory store
