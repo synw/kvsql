@@ -27,24 +27,38 @@ void setup() async {
         return 1;
         break;
       case "query":
-        // count query
         if (methodCall.arguments["sql"] ==
-            "SELECT COUNT(id) FROM test WHERE id=1") {
+            'SELECT key,value,type FROM kvstore WHERE key="k"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"count": 1}
+            <String, dynamic>{"key": "k", "value": "v", "type": "string"}
           ];
           return res;
-        }
-        // exists query
-        else if (methodCall.arguments["sql"] ==
-            "SELECT COUNT(*) FROM test WHERE id=1") {
+        } else if (methodCall.arguments["sql"] ==
+            'SELECT key,value,type FROM kvstore WHERE key="k_int"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"count": 1}
+            <String, dynamic>{"key": "k", "value": "1", "type": "integer"}
           ];
           return res;
-        } else {
+        } else if (methodCall.arguments["sql"] ==
+            'SELECT key,value,type FROM kvstore WHERE key="k_double"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"k": "v"}
+            <String, dynamic>{"key": "k", "value": "1.0", "type": "double"}
+          ];
+          return res;
+        } else if (methodCall.arguments["sql"] ==
+            'SELECT key,value,type FROM kvstore WHERE key="k_list"') {
+          final res = <Map<String, dynamic>>[
+            <String, dynamic>{"key": "k", "value": "1,2,3", "type": "list"}
+          ];
+          return res;
+        } else if (methodCall.arguments["sql"] ==
+            'SELECT key,value,type FROM kvstore WHERE key="k_map"') {
+          final res = <Map<String, dynamic>>[
+            <String, dynamic>{
+              "key": "k",
+              "value": '{"1":1,"2":2}',
+              "type": "map"
+            }
           ];
           return res;
         }
