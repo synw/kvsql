@@ -79,8 +79,12 @@ class KvStore {
   ///
   /// Returns the id of the new inserted database row
   Future<int> insert<T>(String key, T value) async {
+    if (T == dynamic) {
+      throw (ArgumentError("Please provide a non dynamic type"));
+    }
     if (!(value is T)) {
-      throw ArgumentError("Please provide a non dynamic type");
+      throw ArgumentError(
+          "The value is of type ${value.runtimeType} and should be $T");
     }
     int id;
     if (inMemory == true) _inMemoryStore[key] = value;
@@ -119,6 +123,9 @@ class KvStore {
   ///
   /// Return true if the key has been updated
   Future<bool> update<T>(String key, T value) async {
+    if (T == dynamic) {
+      throw (ArgumentError("Please provide a non dynamic type"));
+    }
     if (!(value is T)) {
       throw ArgumentError(
           "The value is of type ${value.runtimeType} and should be $T");
