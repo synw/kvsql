@@ -57,26 +57,36 @@ void main() async {
       });
       return true;
     });
-  });
 
-  test("insert list", () async {
-    await store.insert<List<int>>("k_list", [1, 2, 3]).then((int r) async {
-      expect(r, 1);
-      final insertedVal = await store.selectList<int>("k_list");
-      expect(insertedVal is List<int>, true);
-      expect(insertedVal, [1, 2, 3]);
+    test("insert list", () async {
+      await store.insert<List<int>>("k_list", [1, 2, 3]).then((int r) async {
+        expect(r, 1);
+        final insertedVal = await store.selectList<int>("k_list");
+        expect(insertedVal is List<int>, true);
+        expect(insertedVal, [1, 2, 3]);
+      });
+      return true;
     });
-    return true;
-  });
 
-  test("insert map", () async {
-    await store.insert<Map<String, int>>(
-        "k_map", <String, int>{"1": 1, "2": 2}).then((int r) async {
-      expect(r, 1);
-      final insertedVal = await store.selectMap<String, int>("k_map");
-      expect(insertedVal is Map<String, int>, true);
-      expect(insertedVal, <String, int>{"1": 1, "2": 2});
+    test("insert map", () async {
+      await store.insert<Map<String, int>>(
+          "k_map", <String, int>{"1": 1, "2": 2}).then((int r) async {
+        expect(r, 1);
+        final insertedVal = await store.selectMap<String, int>("k_map");
+        expect(insertedVal is Map<String, int>, true);
+        expect(insertedVal, <String, int>{"1": 1, "2": 2});
+      });
+      return true;
     });
-    return true;
+
+    test("insert dynamic", () async {
+      try {
+        await store.insert<dynamic>("k_int", 1);
+      } on ArgumentError catch (e) {
+        expect(e.message, "Please provide a non dynamic type");
+        return true;
+      }
+      throw ("Argument error exception expected");
+    });
   });
 }
