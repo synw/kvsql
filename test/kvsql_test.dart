@@ -8,7 +8,9 @@ void main() async {
   await setup();
 
   final db = Db();
+  final db2 = Db();
   KvStore store;
+  KvStore memStore;
 
   tearDown(() {
     log.clear();
@@ -22,15 +24,15 @@ void main() async {
         verbose: true);
     expect(db.isReady, true);
     store = KvStore(db: db, verbose: true);
-    unawaited(store.onReady.whenComplete(() => print("Store is ready")));
+    unawaited(
+        store.onReady.whenComplete(() => print("In memory store is ready")));
     await store.onReady;
     return true;
   });
 
-  group("insert", () {
-    test("insert string", () async {
-      await store.insert<String>("k", "v").then((int r) async {
-        expect(r, 1);
+  group("put", () {
+    test("put string", () async {
+      await store.put<String>("k", "v").then((_) async {
         final insertedVal = await store.select<String>("k");
         expect(insertedVal is String, true);
         expect(insertedVal, "v");
@@ -38,9 +40,8 @@ void main() async {
       return true;
     });
 
-    test("insert int", () async {
-      await store.insert<int>("k_int", 1).then((int r) async {
-        expect(r, 1);
+    test("put int", () async {
+      await store.put<int>("k_int", 1).then((_) async {
         final insertedVal = await store.select<int>("k_int");
         expect(insertedVal is int, true);
         expect(insertedVal, 1);
@@ -48,9 +49,8 @@ void main() async {
       return true;
     });
 
-    test("insert double", () async {
-      await store.insert<double>("k_double", 1.0).then((int r) async {
-        expect(r, 1);
+    test("put double", () async {
+      await store.put<double>("k_double", 1.0).then((_) async {
         final insertedVal = await store.select<double>("k_double");
         expect(insertedVal is double, true);
         expect(insertedVal, 1.0);
@@ -58,9 +58,8 @@ void main() async {
       return true;
     });
 
-    test("insert list", () async {
-      await store.insert<List<int>>("k_list", [1, 2, 3]).then((int r) async {
-        expect(r, 1);
+    test("put list", () async {
+      await store.put<List<int>>("k_list", [1, 2, 3]).then((_) async {
         final insertedVal = await store.selectList<int>("k_list");
         expect(insertedVal is List<int>, true);
         expect(insertedVal, [1, 2, 3]);
@@ -68,10 +67,9 @@ void main() async {
       return true;
     });
 
-    test("insert map", () async {
-      await store.insert<Map<String, int>>(
-          "k_map", <String, int>{"1": 1, "2": 2}).then((int r) async {
-        expect(r, 1);
+    test("put map", () async {
+      await store.put<Map<String, int>>(
+          "k_map", <String, int>{"1": 1, "2": 2}).then((_) async {
         final insertedVal = await store.selectMap<String, int>("k_map");
         expect(insertedVal is Map<String, int>, true);
         expect(insertedVal, <String, int>{"1": 1, "2": 2});
@@ -79,14 +77,75 @@ void main() async {
       return true;
     });
 
-    test("insert dynamic", () async {
+    test("put dynamic", () async {
       try {
-        await store.insert<dynamic>("k_int", 1);
+        await store.put<dynamic>("k_int", 1);
       } on ArgumentError catch (e) {
         expect(e.message, "Please provide a non dynamic type");
         return true;
       }
       throw ("Argument error exception expected");
+    });
+  });
+
+  group("in memory", () {
+    test("Init in memory kvstore", () async {
+      await db2.init(
+          path: "testdb2.sqlite",
+          absolutePath: true,
+          schema: [kvSchema()],
+          verbose: true);
+      expect(db2.isReady, true);
+      memStore = KvStore(db: db2, inMemory: true, verbose: true);
+      unawaited(memStore.onReady.whenComplete(() => print("Store is ready")));
+      await memStore.onReady;
+      return true;
+    });
+
+    test("select string sync", () async {
+      await memStore.put<String>("k", "v").then((_) async {
+        final insertedVal = await memStore.selectSync<String>("k");
+        expect(insertedVal is String, true);
+        expect(insertedVal, "v");
+      });
+      return true;
+    });
+
+    test("select int sync", () async {
+      await memStore.put<int>("k_int", 1).then((_) async {
+        final insertedVal = await memStore.selectSync<int>("k_int");
+        expect(insertedVal is int, true);
+        expect(insertedVal, 1);
+      });
+      return true;
+    });
+
+    test("select double sync", () async {
+      await memStore.put<double>("k_double", 1.0).then((_) async {
+        final insertedVal = await memStore.selectSync<double>("k_double");
+        expect(insertedVal is double, true);
+        expect(insertedVal, 1.0);
+      });
+      return true;
+    });
+
+    test("select list sync", () async {
+      await memStore.put<List<int>>("k_list", [1, 2, 3]).then((_) async {
+        final insertedVal = await memStore.selectListSync<int>("k_list");
+        expect(insertedVal is List<int>, true);
+        expect(insertedVal, [1, 2, 3]);
+      });
+      return true;
+    });
+
+    test("select map sync", () async {
+      await memStore.put<Map<String, int>>(
+          "k_map", <String, int>{"1": 1, "2": 2}).then((_) async {
+        final insertedVal = await memStore.selectMapSync<String, int>("k_map");
+        expect(insertedVal is Map<String, int>, true);
+        expect(insertedVal, <String, int>{"1": 1, "2": 2});
+      });
+      return true;
     });
   });
 }

@@ -75,35 +75,6 @@ class KvStore {
     _readyCompleter.complete();
   }
 
-  /// Insert a key/value pair into the database
-  ///
-  /// Returns the id of the new inserted database row
-  Future<int> insert<T>(String key, T value) async {
-    if (T == dynamic) {
-      throw (ArgumentError("Please provide a non dynamic type"));
-    }
-    if (!(value is T)) {
-      throw ArgumentError(
-          "The value is of type ${value.runtimeType} and should be $T");
-    }
-    int id;
-    if (inMemory == true) _inMemoryStore[key] = value;
-    final List<String> res = encode(value);
-    final String val = res[0] ?? "NULL";
-    final String typeStr = res[1];
-    try {
-      final Map<String, String> row = <String, String>{
-        "key": key,
-        "value": val,
-        "type": typeStr
-      };
-      id = await _db.insert(table: "kvstore", row: row, verbose: verbose);
-    } catch (e) {
-      throw ("Can not insert data $e");
-    }
-    return id;
-  }
-
   /// Delete a key from the database
   ///
   /// Returns the number of deleted items
@@ -117,37 +88,6 @@ class KvStore {
       throw ("Can not delete data $e");
     }
     return deleted;
-  }
-
-  /// Update a key to a new value
-  ///
-  /// Return true if the key has been updated
-  Future<bool> update<T>(String key, T value) async {
-    if (T == dynamic) {
-      throw (ArgumentError("Please provide a non dynamic type"));
-    }
-    if (!(value is T)) {
-      throw ArgumentError(
-          "The value is of type ${value.runtimeType} and should be $T");
-    }
-    int updated = 0;
-    try {
-      if (inMemory == true) _inMemoryStore[key] = value;
-      final List<String> res = encode(value);
-      final String val = res[0] ?? "NULL";
-      final String typeStr = res[1];
-      final Map<String, String> row = <String, String>{
-        "value": val,
-        "type": typeStr
-      };
-      updated = await _db.update(
-          table: "kvstore", where: 'key="$key"', row: row, verbose: verbose);
-    } catch (e) {
-      throw ("Can not update data $e");
-    }
-    bool ok = false;
-    if (updated == 1) ok = true;
-    return ok;
   }
 
   /// Get a map value from a key
@@ -240,7 +180,16 @@ class KvStore {
   }
 
   /// Insert a key or update it if not present
-  Future<void> upsert<T>(String key, T value) async {
+  Future<void> put<T>(String key, T value) async {
+    await _upsert<T>(key, value);
+  }
+
+  Future<void> _upsert<T>(String key, T value, {bool untyped = false}) async {
+    if (!untyped) {
+      if (T == dynamic) {
+        throw (ArgumentError("Please provide a non dynamic type"));
+      }
+    }
     if (!(value is T)) {
       throw (ArgumentError(
           "The value is of type ${value.runtimeType} and should be $T"));
@@ -251,7 +200,7 @@ class KvStore {
       try {
         encoded = encode(value);
       } catch (e) {
-        throw ("Encding $value failed: $e");
+        throw ("Encoding $value failed: $e");
       }
       final String val = encoded[0] ?? "NULL";
       final String typeStr = encoded[1];
@@ -322,18 +271,24 @@ class KvStore {
           "to true at database initialization to use select sync methods"));
     }
     dynamic value;
-    try {
-      if (_inMemoryStore.containsKey(key) == true) {
+    if (_inMemoryStore.containsKey(key) == true) {
+      try {
         value = _inMemoryStore[key];
+        if (value != null) {
+          value = value as T;
+        } else {
+          return null;
+        }
+      } catch (e) {
         if (!(value is T)) {
           throw (ArgumentError("The selected value is of type " +
               "${value.runtimeType} and should be $T"));
+        } else {
+          rethrow;
         }
-      } else {
-        return null;
       }
-    } catch (e) {
-      throw ("Can not select data $e");
+    } else {
+      return null;
     }
     if (verbose) {
       print("# KVstore: select $key : $value");
@@ -354,7 +309,7 @@ class KvStore {
     await for (final item in _changefeed.stream) {
       final String k = item[0].toString();
       final dynamic v = item[1];
-      unawaited(upsert<dynamic>(k, v));
+      unawaited(_upsert<dynamic>(k, v, untyped: true));
     }
   }
 

@@ -20,12 +20,6 @@ void setup() async {
       case "getDatabasesPath":
         return directory.path;
         break;
-      case "insert":
-        return 1;
-        break;
-      case "update":
-        return 1;
-        break;
       case "query":
         if (methodCall.arguments["sql"] ==
             'SELECT key,value,type FROM kvstore WHERE key="k"') {
@@ -60,6 +54,9 @@ void setup() async {
               "type": "map"
             }
           ];
+          return res;
+        } else if (methodCall.arguments["sql"] == 'SELECT * FROM kvstore') {
+          final res = <Map<String, dynamic>>[<String, dynamic>{}];
           return res;
         }
     }
