@@ -17,10 +17,10 @@ class _PushPageState extends State<PushPage> {
   }
 
   Future<int> getInitialData() async {
-    final dynamic n = await store.selectDynamic("squares");
-    final v = int.parse(n.toString());
-    print("Value $v");
-    return v;
+    int n = await store.select<int>("squares");
+    n ??= 0;
+    print("Value $n");
+    return n;
   }
 
   Future<void> buildSquares() async {

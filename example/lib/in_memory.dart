@@ -23,7 +23,7 @@ class _InMemoryPageState extends State<InMemoryPage> {
 
   @override
   void dispose() {
-    store.db.database.close();
+    store.dispose();
     super.dispose();
   }
 
@@ -47,11 +47,8 @@ class _InMemoryPageState extends State<InMemoryPage> {
                             await store.put<double>("double_value", 5.5);
                             await store.put<List<String>>(
                                 "list_value", ["one", "two", "three"]);
-                            await store.put<Map<String, dynamic>>(
-                                "map_value", <String, dynamic>{
-                              "stringval": "Foo",
-                              "intval": 5
-                            });
+                            await store.put<Map<String, String>>("map_value",
+                                <String, String>{"stringval": "Foo"});
                             print("Data inserted");
                             setState(() => finished = true);
                           },
@@ -118,12 +115,11 @@ class SelectValue extends StatelessWidget {
         value = store.selectSync<double>(valueName);
         break;
       case "list":
-        value = store.selectListSync<String>(valueName);
+        value = store.selectSync<List<String>>(valueName);
         break;
       case "map":
-        value = store.selectMapSync<String, dynamic>(valueName);
+        value = store.selectSync<Map<String, String>>(valueName);
         break;
-      default:
     }
     final dynamic valueType = value.runtimeType;
     return Padding(
