@@ -6,7 +6,7 @@ class _SimpleMapState extends State<SimpleMap> {
   bool inserted = false;
 
   Future<void> updateUi() async {
-    final v = await store.selectMap<String, int>("key37");
+    final v = await store.select<Map<String, int>>("key37");
     setState(() {
       if (v == null) {
         value = "";

@@ -6,7 +6,7 @@ class _SimpleListState extends State<SimpleList> {
   bool inserted = false;
 
   Future<void> updateUi() async {
-    final v = await store.selectList<int>("key55");
+    final v = await store.select<List<int>>("key55");
     setState(() {
       if (v == null) {
         value = "";
