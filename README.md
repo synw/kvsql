@@ -47,7 +47,7 @@ Allowed types for lists and maps keys and values are `String`, `int` and `double
 Returns a typed value
 
    ```dart
-   final String myValue = await store.select<List<int>>("mykey");
+   final List<int> myValue = await store.select<List<int>>("mykey");
    ```
 
 ### Select sync
@@ -55,7 +55,7 @@ Returns a typed value
 Synchronously select a value.
 
    ```dart
-   final String myValue = store.selectSync<Map<String, int>>("mykey");
+   final Map<String, int> myValue = store.selectSync<Map<String, int>>("mykey");
    ```
 
 For this to work you need to initialize the store with the `inMemory` option that keeps an in memory copy of the store values.
