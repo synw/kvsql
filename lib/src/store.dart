@@ -166,7 +166,7 @@ class KvStore {
     try {
       final qres = await _db.select(
           table: "kvstore",
-          columns: "key,value,type",
+          columns: "key,value,type,list_type,map_key_type,map_value_type",
           where: 'key="$key"',
           verbose: verbose);
       if (qres.isEmpty) {
@@ -196,18 +196,19 @@ class KvStore {
     }
     try {
       if (inMemory == true) _inMemoryStore[key] = value;
-      List<String> encoded;
+      DatabaseEncodedRow encoded;
       try {
-        encoded = encode(value);
+        encoded = encode<T>(value);
       } catch (e) {
         throw ("Encoding $value failed: $e");
       }
-      final String val = encoded[0] ?? "NULL";
-      final String typeStr = encoded[1];
       final Map<String, String> row = <String, String>{
         "key": key,
-        "value": val,
-        "type": typeStr
+        "value": encoded.value,
+        "type": encoded.type,
+        "list_type": encoded.listType,
+        "map_key_type": encoded.mapKeyType,
+        "map_value_type": encoded.mapValueType
       };
       await _db
           .upsert(table: "kvstore", row: row, verbose: verbose)

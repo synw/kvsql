@@ -1,13 +1,77 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
+
+/// encoding format for database row reprensentation
+class DatabaseEncodedRow {
+  /// default constructor
+  DatabaseEncodedRow(
+      {@required this.value,
+      @required this.type,
+      this.listType,
+      this.mapKeyType,
+      this.mapValueType});
+
+  /// the type
+  final String type;
+
+  /// the value
+  final String value;
+
+  /// the type of a list
+  final String listType;
+
+  /// the type of a map key
+  final String mapKeyType;
+
+  /// the type of a map value
+  final String mapValueType;
+}
+
+List<String> _inferMapTypeToString<T>() {
+  final bs = T.toString();
+  if (bs.contains("dynamic")) {
+    throw ("Please provide non dynamic types for your map");
+  }
+  final t = bs.replaceFirst("Map<", "");
+  if (t.contains("Map")) {
+    throw ("A map value can not be another map");
+  }
+  t.replaceFirst(">", "");
+  final l = t.split(",");
+  if (l[1].contains("List")) {
+    throw ("A map value can not be a list");
+  }
+  final k = l[0].trim();
+  final v = l[1].trim();
+  return <String>[k, v];
+}
+
+String _inferListTypeToString<T>() {
+  final bs = T.toString();
+  if (bs.contains("dynamic")) {
+    throw ("Please provide a non dynamic type for your list");
+  }
+  var t = bs.replaceFirst("List<", "");
+  if (t.contains("List")) {
+    throw ("A list value type can not be another list");
+  } else if (t.contains("Map")) {
+    throw ("A list value type can not be a map");
+  }
+  t = t.replaceFirst(">", "");
+  return t;
+}
 
 /// Encode a value to be stored as a string
-List<String> encode(dynamic value) {
+DatabaseEncodedRow encode<T>(T value) {
   String val;
   String typeStr;
+  String listTypeStr = "NULL";
+  String mapKeyTypeStr = "NULL";
+  String mapValueTypeStr = "NULL";
   if (value == null) {
     val = null;
     typeStr = "unknown";
-    return [val, typeStr];
+    return DatabaseEncodedRow(value: val, type: typeStr);
   } else {
     if (value is String) {
       val = value.toString();
@@ -19,11 +83,9 @@ List<String> encode(dynamic value) {
       val = "${double.parse(value.toString())}";
       typeStr = "double";
     } else if (value is List) {
-      /*val = value
-          .reduce((dynamic curr, dynamic next) => "$curr,$next")
-          .toString();*/
       val = value.join(",");
       typeStr = "list";
+      listTypeStr = _inferListTypeToString<T>();
     } else if (value is Map) {
       final strMap = <String, dynamic>{};
       value.forEach((dynamic k, dynamic v) {
@@ -31,12 +93,20 @@ List<String> encode(dynamic value) {
       });
       val = json.encode(strMap);
       typeStr = "map";
+      final res = _inferMapTypeToString<T>();
+      mapKeyTypeStr = res[0];
+      mapValueTypeStr = res[1];
     } else {
       val = "$val";
       typeStr = "unknown";
     }
   }
-  return <String>[val, typeStr];
+  return DatabaseEncodedRow(
+      value: val,
+      type: typeStr,
+      listType: listTypeStr,
+      mapKeyType: mapKeyTypeStr,
+      mapValueType: mapValueTypeStr);
 }
 
 ///Decode a database list string to it's type
