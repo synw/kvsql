@@ -31,7 +31,7 @@ class _SimpleMapState extends State<SimpleMap> {
                     onPressed: () {
                       final val = <String, int>{"one": 1, "two": 2};
                       store
-                          .upsert<Map<String, int>>("key37", val)
+                          .put<Map<String, int>>("key37", val)
                           .then((_) => updateUi());
                       inserted = true;
                     },
@@ -43,7 +43,7 @@ class _SimpleMapState extends State<SimpleMap> {
                     onPressed: () {
                       final val = <String, int>{"one": 10, "two": 20};
                       store
-                          .update<Map<String, int>>("key37", val)
+                          .put<Map<String, int>>("key37", val)
                           .then((_) => updateUi());
                     },
                   ),

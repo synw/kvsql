@@ -31,7 +31,7 @@ class _SimpleListState extends State<SimpleList> {
                     onPressed: () {
                       final val = <int>[1, 2, 3];
                       store
-                          .upsert<List<int>>("key55", val)
+                          .put<List<int>>("key55", val)
                           .then((_) => updateUi());
                       inserted = true;
                     },
@@ -43,7 +43,7 @@ class _SimpleListState extends State<SimpleList> {
                     onPressed: () {
                       final val = <int>[1, 2, 3, 4, 5];
                       store
-                          .update<List<int>>("key55", val)
+                          .put<List<int>>("key55", val)
                           .then((_) => updateUi());
                     },
                   ),

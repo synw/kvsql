@@ -42,13 +42,12 @@ class _InMemoryPageState extends State<InMemoryPage> {
                         RaisedButton(
                           child: const Text("Insert"),
                           onPressed: () async {
-                            await store.insert<String>(
-                                "string_value", "Foo bar");
-                            await store.insert<int>("int_value", 3);
-                            await store.insert<double>("double_value", 5.5);
-                            await store.insert<List<String>>(
+                            await store.put<String>("string_value", "Foo bar");
+                            await store.put<int>("int_value", 3);
+                            await store.put<double>("double_value", 5.5);
+                            await store.put<List<String>>(
                                 "list_value", ["one", "two", "three"]);
-                            await store.insert<Map<String, dynamic>>(
+                            await store.put<Map<String, dynamic>>(
                                 "map_value", <String, dynamic>{
                               "stringval": "Foo",
                               "intval": 5
