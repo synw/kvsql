@@ -67,7 +67,11 @@ class KvStore {
       final List<Map<String, dynamic>> res = await _db.select(table: "kvstore");
       res.forEach((Map<String, dynamic> item) =>
           _inMemoryStore[item["key"].toString()] = decodeFromTypeStr<dynamic>(
-              item["value"], item["type"].toString()));
+              item["value"],
+              item["type"].toString(),
+              item["list_type"].toString(),
+              item["map_key_type"].toString(),
+              item["map_value_type"].toString()));
     }
 
     /// Run the queue for the [push] method
@@ -90,38 +94,9 @@ class KvStore {
     return deleted;
   }
 
-  /// Get a map value from a key
-  ///
-  /// <K> is the map key type and <V> is the map value type
-  Future<Map<K, V>> selectMap<K, V>(String key) async {
-    final res = await _selectQuery(key);
-    if (res == null) {
-      return null;
-    }
-    final Map<K, V> result = decodeMap<K, V>(res["value"]);
-    return result;
-  }
-
-  /// Get a list value from a key
-  ///
-  /// <T> is the list content type
-  Future<List<T>> selectList<T>(String key) async {
-    final res = await _selectQuery(key);
-    if (res == null) {
-      return null;
-    }
-    final List<T> result = decodeList<T>(res["value"]);
-    return result;
-  }
-
   /// Get a value from a key
   Future<T> select<T>(String key) async {
     return _select<T>(key);
-  }
-
-  /// Get a value from a key
-  Future selectDynamic(String key) async {
-    return _select<dynamic>(key, untyped: true);
   }
 
   Future<T> _select<T>(String key, {bool untyped = false}) async {
@@ -139,11 +114,17 @@ class KvStore {
     T value;
     try {
       if (res != null) {
-        dynamic val = res["value"];
-        if (val.toString() == "NULL") val = null;
+        final dynamic val = res["value"];
+        if (val.toString() == "NULL") {
+          return null;
+        }
         if (!untyped) {
-          final String type = res["type"].toString();
-          value = decodeFromTypeStr<T>(val, type);
+          final typeStr = res["type"].toString();
+          final listTypeStr = res["list_type"].toString();
+          final mapKeyTypeStr = res["map_key_type"].toString();
+          final mapValueTypeStr = res["map_value_type"].toString();
+          value = decodeFromTypeStr<T>(
+              val, typeStr, listTypeStr, mapKeyTypeStr, mapValueTypeStr);
         } else {
           value = val as T;
         }
@@ -299,12 +280,6 @@ class KvStore {
     }
     return value as T;
   }
-
-  /// synchronously select a map
-  Map<T, T2> selectMapSync<T, T2>(String key) => selectSync<Map<T, T2>>(key);
-
-  /// synchronously select a list
-  List<T> selectListSync<T>(String key) => selectSync<List<T>>(key);
 
   Future<void> _runQueue() async {
     await for (final item in _changefeed.stream) {

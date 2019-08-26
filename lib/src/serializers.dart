@@ -75,16 +75,16 @@ DatabaseEncodedRow encode<T>(T value) {
   } else {
     if (value is String) {
       val = value.toString();
-      typeStr = "string";
+      typeStr = "String";
     } else if (value is int) {
       val = "${int.parse(value.toString())}";
-      typeStr = "integer";
+      typeStr = "int";
     } else if (value is double) {
       val = "${double.parse(value.toString())}";
       typeStr = "double";
     } else if (value is List) {
       val = value.join(",");
-      typeStr = "list";
+      typeStr = "List";
       listTypeStr = _inferListTypeToString<T>();
     } else if (value is Map) {
       final strMap = <String, dynamic>{};
@@ -92,7 +92,7 @@ DatabaseEncodedRow encode<T>(T value) {
         strMap["$k"] = v;
       });
       val = json.encode(strMap);
-      typeStr = "map";
+      typeStr = "Map";
       final res = _inferMapTypeToString<T>();
       mapKeyTypeStr = res[0];
       mapValueTypeStr = res[1];
@@ -101,6 +101,8 @@ DatabaseEncodedRow encode<T>(T value) {
       typeStr = "unknown";
     }
   }
+  print(
+      "$typeStr / List: $listTypeStr / mk: $mapKeyTypeStr / mv: $mapValueTypeStr");
   return DatabaseEncodedRow(
       value: val,
       type: typeStr,
@@ -109,64 +111,22 @@ DatabaseEncodedRow encode<T>(T value) {
       mapValueType: mapValueTypeStr);
 }
 
-///Decode a database list string to it's type
-List<T> decodeList<T>(dynamic value) {
-  if (value == "NULL" || value == null) {
-    return null;
-  }
-  final List dataList = value.toString().split(",");
-  final typedList = <T>[];
-  for (final val in dataList) {
-    T v;
-    try {
-      v = decodeFromType<T>(val);
-      typedList.add(v);
-    } catch (e) {
-      throw ("Value $v is of type ${v.runtimeType} and should be $T");
-    }
-  }
-  if (typedList.isEmpty) {
-    return null;
-  }
-  return typedList;
-}
-
-/// Decode a database map string to it's type
-Map<K, V> decodeMap<K, V>(dynamic value) {
-  if (value == "NULL" || value == null) {
-    return null;
-  }
-  final dataMap = json.decode(value.toString()) as Map;
-  // check map types
-  final typedMap = <K, V>{};
-  for (final k in dataMap.keys) {
-    if (!(k is K)) {
-      throw ("The key $k is of type ${k.runtimeType} and should be $V");
-    }
-    if (!(dataMap[k] is V)) {
-      throw ("The value $k is of type ${dataMap[k].runtimeType} " +
-          "and should be $V");
-    }
-    typedMap[k as K] = dataMap[k] as V;
-  }
-  return typedMap;
-}
-
 /// Decode a database value to it's type
-T decodeFromTypeStr<T>(dynamic value, String typeStr) {
+T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
+    String mapKeyTypeStr, String mapValueTypeStr) {
   if (value == "NULL" || value == null) {
     return null;
   }
   dynamic val;
   switch (typeStr) {
-    case "string":
+    case "String":
       try {
         val = _decodeString(value);
       } catch (e) {
         rethrow;
       }
       break;
-    case "integer":
+    case "int":
       try {
         val = _decodeInt(value);
       } catch (e) {
@@ -180,16 +140,76 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr) {
         rethrow;
       }
       break;
-    case "list":
+    case "List":
       try {
-        val = _decodeList(value);
+        switch (listTypeStr) {
+          case "String":
+            val = _decodeList<String>(value);
+            break;
+          case "int":
+            val = _decodeList<int>(value);
+            break;
+          case "double":
+            val = _decodeList<double>(value);
+            break;
+          default:
+            throw ("Invalid list type $listTypeStr");
+        }
       } catch (e) {
         rethrow;
       }
       break;
-    case "map":
+    case "Map":
       try {
-        val = _decodeMap(value);
+        switch (mapKeyTypeStr) {
+          case "String":
+            switch (mapValueTypeStr) {
+              case "String":
+                val = _decodeMap<String, String>(value);
+                break;
+              case "double":
+                val = _decodeMap<String, double>(value);
+                break;
+              case "int":
+                val = _decodeMap<String, int>(value);
+                break;
+              default:
+                throw ("Invalid map value type");
+            }
+            break;
+          case "int":
+            switch (mapValueTypeStr) {
+              case "String":
+                val = _decodeMap<int, String>(value);
+                break;
+              case "double":
+                val = _decodeMap<int, double>(value);
+                break;
+              case "int":
+                val = _decodeMap<int, int>(value);
+                break;
+              default:
+                throw ("Invalid map value type");
+            }
+            break;
+          case "double":
+            switch (mapValueTypeStr) {
+              case "String":
+                val = _decodeMap<double, String>(value);
+                break;
+              case "double":
+                val = _decodeMap<double, double>(value);
+                break;
+              case "int":
+                val = _decodeMap<double, int>(value);
+                break;
+              default:
+                throw ("Invalid map value type");
+            }
+            break;
+          default:
+            throw ("Invalid map key type");
+        }
       } catch (e) {
         rethrow;
       }
@@ -197,61 +217,12 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr) {
     default:
       throw ("Type string $typeStr not known for value $value");
   }
-  T endVal;
   if (T != dynamic) {
     if (!(val is T)) {
       throw ("Value is of type ${val.runtimeType} and should be $T");
     }
   }
-  endVal = val as T;
-  return endVal;
-}
-
-/// Decode a database value to it's type
-T decodeFromType<T>(dynamic value) {
-  if (value == "NULL" || value == null) {
-    return null;
-  }
-  T endVal;
-  switch (T) {
-    case String:
-      try {
-        endVal = _decodeString(value) as T;
-      } catch (e) {
-        rethrow;
-      }
-      break;
-    case int:
-      try {
-        endVal = _decodeInt(value) as T;
-      } catch (e) {
-        rethrow;
-      }
-      break;
-    case double:
-      try {
-        endVal = _decodeDouble(value) as T;
-      } catch (e) {
-        rethrow;
-      }
-      break;
-    case List:
-      try {
-        endVal = _decodeList(value) as T;
-      } catch (e) {
-        rethrow;
-      }
-      break;
-    case Map:
-      try {
-        endVal = _decodeMap(value) as T;
-      } catch (e) {
-        rethrow;
-      }
-      break;
-    default:
-      throw ("Type $T is unknown for value $value");
-  }
+  final endVal = val as T;
   return endVal;
 }
 
@@ -279,22 +250,33 @@ double _decodeDouble(dynamic value) {
   return val;
 }
 
-List<dynamic> _decodeList(dynamic value) {
-  var val = <dynamic>[];
+List<T> _decodeList<T>(dynamic value) {
+  final val = <T>[];
   try {
-    val = value.toString().split(",");
+    final decoded = value.toString().split(",");
+    decoded.forEach((String el) {
+      if (T == String) {
+        val.add(el as T);
+      } else if (T == int) {
+        val.add(_decodeInt(el) as T);
+      } else if (T == double) {
+        val.add(_decodeDouble(el) as T);
+      }
+    });
   } catch (e) {
     throw ("Can not decode list $value");
   }
+  print("VAL $val");
   return val;
 }
 
-Map<dynamic, dynamic> _decodeMap(dynamic value) {
-  var val = <dynamic, dynamic>{};
+Map<K, V> _decodeMap<K, V>(dynamic value) {
+  var val = <K, V>{};
   try {
-    val = json.decode(value.toString()) as Map;
+    final jsonDecoded = json.decode(value.toString()) as Map<String, dynamic>;
+    val = Map<K, V>.from(jsonDecoded);
   } catch (e) {
-    throw ("Can not decode list $value");
+    throw ("Can not decode map $value");
   }
   return val;
 }
