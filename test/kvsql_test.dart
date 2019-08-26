@@ -60,7 +60,7 @@ void main() async {
 
     test("put list", () async {
       await store.put<List<int>>("k_list", [1, 2, 3]).then((_) async {
-        final insertedVal = await store.selectList<int>("k_list");
+        final insertedVal = await store.select<List<int>>("k_list");
         expect(insertedVal is List<int>, true);
         expect(insertedVal, [1, 2, 3]);
       });
@@ -70,7 +70,7 @@ void main() async {
     test("put map", () async {
       await store.put<Map<String, int>>(
           "k_map", <String, int>{"1": 1, "2": 2}).then((_) async {
-        final insertedVal = await store.selectMap<String, int>("k_map");
+        final insertedVal = await store.select<Map<String, int>>("k_map");
         expect(insertedVal is Map<String, int>, true);
         expect(insertedVal, <String, int>{"1": 1, "2": 2});
       });
@@ -131,7 +131,7 @@ void main() async {
 
     test("select list sync", () async {
       await memStore.put<List<int>>("k_list", [1, 2, 3]).then((_) async {
-        final insertedVal = await memStore.selectListSync<int>("k_list");
+        final insertedVal = await memStore.selectSync<List<int>>("k_list");
         expect(insertedVal is List<int>, true);
         expect(insertedVal, [1, 2, 3]);
       });
@@ -141,7 +141,8 @@ void main() async {
     test("select map sync", () async {
       await memStore.put<Map<String, int>>(
           "k_map", <String, int>{"1": 1, "2": 2}).then((_) async {
-        final insertedVal = await memStore.selectMapSync<String, int>("k_map");
+        final insertedVal =
+            await memStore.selectSync<Map<String, int>>("k_map");
         expect(insertedVal is Map<String, int>, true);
         expect(insertedVal, <String, int>{"1": 1, "2": 2});
       });
