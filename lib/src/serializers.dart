@@ -36,11 +36,11 @@ List<String> _inferMapTypeToString<T>() {
   if (t.contains("Map")) {
     throw ("A map value can not be another map");
   }
-  t.replaceFirst(">", "");
   final l = t.split(",");
   if (l[1].contains("List")) {
     throw ("A map value can not be a list");
   }
+  l[1] = l[1].replaceAll(">", "");
   final k = l[0].trim();
   final v = l[1].trim();
   return <String>[k, v];
@@ -96,13 +96,10 @@ DatabaseEncodedRow encode<T>(T value) {
       final res = _inferMapTypeToString<T>();
       mapKeyTypeStr = res[0];
       mapValueTypeStr = res[1];
-    } else {
-      val = "$val";
-      typeStr = "unknown";
     }
   }
-  print(
-      "$typeStr / List: $listTypeStr / mk: $mapKeyTypeStr / mv: $mapValueTypeStr");
+  //print(
+  //    "$typeStr / List: $listTypeStr / mk: $mapKeyTypeStr / mv: $mapValueTypeStr");
   return DatabaseEncodedRow(
       value: val,
       type: typeStr,

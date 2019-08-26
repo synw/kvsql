@@ -42,7 +42,7 @@ class KvStore {
 
   final Completer _readyCompleter = Completer<Null>();
   Db _db;
-  final _changefeed = StreamController<List<dynamic>>.broadcast();
+  final _pushFeed = StreamController<List<dynamic>>.broadcast();
   Map<String, dynamic> _inMemoryStore;
 
   /// The ready callback
@@ -176,7 +176,9 @@ class KvStore {
           "The value is of type ${value.runtimeType} and should be $T"));
     }
     try {
-      if (inMemory == true) _inMemoryStore[key] = value;
+      if (inMemory == true) {
+        _inMemoryStore[key] = value;
+      }
       DatabaseEncodedRow encoded;
       try {
         encoded = encode<T>(value);
@@ -208,8 +210,10 @@ class KvStore {
   /// be safely called concurrently
   void push(String key, dynamic value) {
     final List<dynamic> kv = <dynamic>[key, value];
-    _changefeed.sink.add(kv);
-    if (inMemory == true) _inMemoryStore[key] = value;
+    _pushFeed.sink.add(kv);
+    if (inMemory == true) {
+      _inMemoryStore[key] = value;
+    }
   }
 
   /// Count the keys in the store
@@ -253,7 +257,7 @@ class KvStore {
           "to true at database initialization to use select sync methods"));
     }
     dynamic value;
-    if (_inMemoryStore.containsKey(key) == true) {
+    if (_inMemoryStore.containsKey(key)) {
       try {
         value = _inMemoryStore[key];
         if (value != null) {
@@ -282,7 +286,7 @@ class KvStore {
   }
 
   Future<void> _runQueue() async {
-    await for (final item in _changefeed.stream) {
+    await for (final item in _pushFeed.stream) {
       final String k = item[0].toString();
       final dynamic v = item[1];
       unawaited(_upsert<dynamic>(k, v, untyped: true));
@@ -291,6 +295,7 @@ class KvStore {
 
   /// Dispose the store
   void dispose() {
-    _changefeed.close();
+    _pushFeed.close();
+    _db.database.close();
   }
 }
