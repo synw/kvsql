@@ -2,7 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/kvsql.svg)](https://pub.dartlang.org/packages/kvsql)
 
-A key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://github.com/synw/sqlcool).
+A type safe key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://github.com/synw/sqlcool).
 
 ## Usage
 
@@ -18,65 +18,44 @@ A key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://git
 Initialize with an existing [Sqlcool database](https://github.com/synw/sqlcool):
 
    ```dart
-   db.init(path: "mydb.db", schema=[kvSchema()]);
+   import 'package:kvsql/kvsql.dart';
+   import 'package:sqlcool/sqlcool.dart';
+
+   final db = Db();
+   await db.init(path: "mydb.db", schema=[kvSchema()]);
    store = KvStore(db: db);
    ```
 
-## Insert
+### Insert or update
 
    ```dart
-   await store.insert("mykey", "myvalue");
+   await store.put<String>("mykey", "myvalue");
    ```
 
-Supported value types are: `String`, `int`, `double`, `List`, `Map`
+Supported value types are: `String`, `int`, `double`, `List<T>`, `Map<K, V>`
 
-## Update
+Allowed types for lists and maps keys and values are `String`, `int` and `double`
 
-   ```dart
-   await store.update("mykey", "my_new_value");
-   ```
-
-## Delete
+### Delete
 
    ```dart
    await store.delete("mykey");
    ```
 
-## Select
+### Select
 
 Returns a typed value
 
    ```dart
-   final dynamic myValue = await store.select("mykey");
+   final String myValue = await store.select<List<int>>("mykey");
    ```
 
-## Upsert
-
-Inserts a value if it does not exists or update it otherwise
-
-   ```dart
-    await store.upsert("mykey", "my_new_value");
-   ```
-
-## Push
-
-This method upserts a key/value using a queue: it can be safely
-called concurrently. Useful for high throughput updates.
-
-Limitation: this method is executed asynchronously but can not be awaited.
-
-   ```dart
-    store.push("mykey", "my_value");
-   ```
-
-Check the examples for detailled usage.
-
-## Select sync
+### Select sync
 
 Synchronously select a value.
 
    ```dart
-   final dynamic myValue = store.selectSync("mykey");
+   final String myValue = store.selectSync<Map<String, int>>("mykey");
    ```
 
 For this to work you need to initialize the store with the `inMemory` option that keeps an in memory copy of the store values.
@@ -85,15 +64,21 @@ For this to work you need to initialize the store with the `inMemory` option tha
    store = KvStore(inMemory = true);
    ```
 
-*Note*: if you don't await your mutations or use `push` you are exposed to
-eventual consistency using this method
+### Push
 
-Typed values select sync are available:
+This method upserts a key/value using a queue: it can be safely
+called concurrently. Useful for high throughput updates.
 
    ```dart
-   final double myValue = store.selectDoubleSync("mykey");
-   final int myValue = store.selectIntegerSync("mykey");
-   final String myValue = store.selectStringSync("mykey");
-   final List myValue = store.selectListSync("mykey");
-   final Map myValue = store.selectMapSync("mykey");
+    store.push("mykey", "my_value");
    ```
+
+**Limitations**:
+
+- This method is executed asynchronously but can not be awaited
+- It does not control the type of the data
+
+*Note*: if you don't await your mutations or use `push` you are exposed to
+eventual consistency
+
+Check the examples for detailled usage.
