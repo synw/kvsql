@@ -28,7 +28,7 @@ void setup() async {
             <String, dynamic>{
               "key": "k",
               "value": "v",
-              "type": "string",
+              "type": "String",
               "list_type": null,
               "map_key_type": null,
               "map_value_type": null
@@ -42,7 +42,7 @@ void setup() async {
             <String, dynamic>{
               "key": "k",
               "value": "1",
-              "type": "integer",
+              "type": "int",
               "list_type": null,
               "map_key_type": null,
               "map_value_type": null
@@ -70,7 +70,7 @@ void setup() async {
             <String, dynamic>{
               "key": "k",
               "value": "1,2,3",
-              "type": "list",
+              "type": "List",
               "list_type": "int",
               "map_key_type": null,
               "map_value_type": null
@@ -84,7 +84,7 @@ void setup() async {
             <String, dynamic>{
               "key": "k",
               "value": '{"1":1,"2":2}',
-              "type": "map",
+              "type": "Map",
               "list_type": null,
               "map_key_type": "String",
               "map_value_type": "int"
