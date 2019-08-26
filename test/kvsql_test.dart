@@ -30,7 +30,7 @@ void main() async {
     return true;
   });
 
-  group("put", () {
+  group("Base", () {
     test("put string", () async {
       await store.put<String>("k", "v").then((_) async {
         final insertedVal = await store.select<String>("k");

@@ -22,36 +22,72 @@ void setup() async {
         break;
       case "query":
         if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type FROM kvstore WHERE key="k"') {
+            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+                'FROM kvstore WHERE key="k"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"key": "k", "value": "v", "type": "string"}
+            <String, dynamic>{
+              "key": "k",
+              "value": "v",
+              "type": "string",
+              "list_type": null,
+              "map_key_type": null,
+              "map_value_type": null
+            }
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type FROM kvstore WHERE key="k_int"') {
+            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+                'FROM kvstore WHERE key="k_int"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"key": "k", "value": "1", "type": "integer"}
+            <String, dynamic>{
+              "key": "k",
+              "value": "1",
+              "type": "integer",
+              "list_type": null,
+              "map_key_type": null,
+              "map_value_type": null
+            }
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type FROM kvstore WHERE key="k_double"') {
+            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+                'FROM kvstore WHERE key="k_double"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"key": "k", "value": "1.0", "type": "double"}
+            <String, dynamic>{
+              "key": "k",
+              "value": "1.0",
+              "type": "double",
+              "list_type": null,
+              "map_key_type": null,
+              "map_value_type": null
+            }
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type FROM kvstore WHERE key="k_list"') {
+            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+                'FROM kvstore WHERE key="k_list"') {
           final res = <Map<String, dynamic>>[
-            <String, dynamic>{"key": "k", "value": "1,2,3", "type": "list"}
+            <String, dynamic>{
+              "key": "k",
+              "value": "1,2,3",
+              "type": "list",
+              "list_type": "int",
+              "map_key_type": null,
+              "map_value_type": null
+            }
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type FROM kvstore WHERE key="k_map"') {
+            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+                'FROM kvstore WHERE key="k_map"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
               "key": "k",
               "value": '{"1":1,"2":2}',
-              "type": "map"
+              "type": "map",
+              "list_type": null,
+              "map_key_type": "String",
+              "map_value_type": "int"
             }
           ];
           return res;
