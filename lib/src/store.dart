@@ -251,7 +251,7 @@ class KvStore {
   ///
   /// The [inMemory] option must be set to true when initilializing
   /// the store for this to work
-  T selectSync<T>(String key) {
+  T selectSync<T>(String key, {bool quiet = false}) {
     if (!inMemory) {
       throw (ArgumentError("The [inMemory] parameter must be set " +
           "to true at database initialization to use select sync methods"));
@@ -276,7 +276,7 @@ class KvStore {
     } else {
       return null;
     }
-    if (verbose) {
+    if (verbose && (!quiet)) {
       print("# KVstore: select $key : $value");
     }
     if (value == null) {
