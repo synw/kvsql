@@ -249,6 +249,10 @@ double _decodeDouble(dynamic value) {
 
 List<T> _decodeList<T>(dynamic value) {
   final val = <T>[];
+  if (value == "") {
+    // empty list
+    return val;
+  }
   try {
     final decoded = value.toString().split(",");
     decoded.forEach((String el) {
