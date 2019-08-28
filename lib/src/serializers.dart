@@ -82,6 +82,9 @@ DatabaseEncodedRow encode<T>(T value) {
     } else if (value is double) {
       val = "${double.parse(value.toString())}";
       typeStr = "double";
+    } else if (value is bool) {
+      val = "$value";
+      typeStr = "bool";
     } else if (value is List) {
       val = value.join(",");
       typeStr = "List";
@@ -137,6 +140,13 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
         rethrow;
       }
       break;
+    case "bool":
+      try {
+        val = _decodeBool(value);
+      } catch (e) {
+        rethrow;
+      }
+      break;
     case "List":
       try {
         switch (listTypeStr) {
@@ -148,6 +158,9 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
             break;
           case "double":
             val = _decodeList<double>(value);
+            break;
+          case "bool":
+            val = _decodeList<bool>(value);
             break;
           default:
             throw ("Invalid list type $listTypeStr");
@@ -170,6 +183,9 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
               case "int":
                 val = _decodeMap<String, int>(value);
                 break;
+              case "bool":
+                val = _decodeMap<String, bool>(value);
+                break;
               default:
                 throw ("Invalid map value type");
             }
@@ -185,6 +201,9 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
               case "int":
                 val = _decodeMap<int, int>(value);
                 break;
+              case "bool":
+                val = _decodeMap<String, bool>(value);
+                break;
               default:
                 throw ("Invalid map value type");
             }
@@ -199,6 +218,9 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
                 break;
               case "int":
                 val = _decodeMap<double, int>(value);
+                break;
+              case "bool":
+                val = _decodeMap<String, bool>(value);
                 break;
               default:
                 throw ("Invalid map value type");
@@ -225,6 +247,21 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
 
 String _decodeString(dynamic value) {
   return "$value";
+}
+
+bool _decodeBool(dynamic value) {
+  bool res;
+  switch (value == "true") {
+    case true:
+      res = true;
+      break;
+    case false:
+      res = false;
+      break;
+    default:
+      throw ("Wrong value for boolean: $value");
+  }
+  return res;
 }
 
 int _decodeInt(dynamic value) {
@@ -262,6 +299,8 @@ List<T> _decodeList<T>(dynamic value) {
         val.add(_decodeInt(el) as T);
       } else if (T == double) {
         val.add(_decodeDouble(el) as T);
+      } else if (T == bool) {
+        val.add(_decodeBool(el) as T);
       }
     });
   } catch (e) {

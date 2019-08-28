@@ -1,7 +1,7 @@
 import 'package:sqlcool/sqlcool.dart';
 
 String _checkType(String field) {
-  return '$field="int" OR $field="String" OR $field="double"' +
+  return '$field="int" OR $field="String" OR $field="double" OR $field="bool"' +
       ' OR $field="List" OR $field="Map" OR $field IS NULL';
 }
 

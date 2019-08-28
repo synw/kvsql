@@ -105,11 +105,6 @@ class KvStore {
         throw (ArgumentError("Please provide a non dynamic type"));
       }
     }
-    if (T is Map) {
-      throw (ArgumentError("Please use selectMap<K, V> for maps data type"));
-    } else if (T is List) {
-      throw (ArgumentError("Please use selectList<T> for lists data type"));
-    }
     final res = await _selectQuery(key);
     T value;
     try {
