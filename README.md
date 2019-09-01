@@ -72,7 +72,7 @@ This method upserts a key/value using a queue: it can be safely
 called concurrently. Useful for high throughput updates.
 
    ```dart
-    store.push("mykey", "my_value");
+   store.push("mykey", "my_value");
    ```
 
 **Limitations**:
@@ -84,3 +84,25 @@ called concurrently. Useful for high throughput updates.
 eventual consistency
 
 Check the examples for detailled usage.
+
+## Persistant state
+
+The kvstore can be used to persist the app state. Example with provider:
+
+   ```dart
+   import 'package:flutter/foundation.dart';
+   import 'package:kvsql/kvsql.dart';
+
+   final stateStore =
+       KvStore(inMemory: true, path: "stateStore.db");
+
+   class AppState with ChangeNotifier {
+     int get value => stateStore.selectSync<int>("value");
+     set value(int v) => stateStore.put<int>("value", v);
+
+     void updateValue(int val) {
+       value = val;
+       notifyListeners();
+     }
+   }
+   ```
