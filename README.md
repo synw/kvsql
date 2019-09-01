@@ -32,9 +32,11 @@ Initialize with an existing [Sqlcool database](https://github.com/synw/sqlcool):
    await store.put<String>("mykey", "myvalue");
    ```
 
-Supported value types are: `String`, `int`, `double`, `List<T>`, `Map<K, V>`
+Supported value types are: `String`, `int`, `double`, `bool`, `List<T>`, `Map<K, V>`
 
-Allowed types for lists and maps keys and values are `String`, `int` and `double`
+Allowed types for map keys are: `String`, `int` and `double`
+
+Allowed types for lists and maps values are `String`, `int`, `bool`, `double` and `dynamic`
 
 ### Delete
 
