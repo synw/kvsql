@@ -29,9 +29,6 @@ class DatabaseEncodedRow {
 
 List<String> _inferMapTypeToString<T>() {
   final bs = T.toString();
-  if (bs.contains("dynamic")) {
-    throw ("Please provide non dynamic types for your map");
-  }
   final t = bs.replaceFirst("Map<", "");
   if (t.contains("Map")) {
     throw ("A map value can not be another map");
@@ -48,9 +45,6 @@ List<String> _inferMapTypeToString<T>() {
 
 String _inferListTypeToString<T>() {
   final bs = T.toString();
-  if (bs.contains("dynamic")) {
-    throw ("Please provide a non dynamic type for your list");
-  }
   var t = bs.replaceFirst("List<", "");
   if (t.contains("List")) {
     throw ("A list value type can not be another list");
@@ -162,6 +156,9 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
           case "bool":
             val = _decodeList<bool>(value);
             break;
+          case "dynamic":
+            val = _decodeList<dynamic>(value);
+            break;
           default:
             throw ("Invalid list type $listTypeStr");
         }
@@ -186,6 +183,9 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
               case "bool":
                 val = _decodeMap<String, bool>(value);
                 break;
+              case "dynamic":
+                val = _decodeMap<String, dynamic>(value);
+                break;
               default:
                 throw ("Invalid map value type");
             }
@@ -202,7 +202,10 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
                 val = _decodeMap<int, int>(value);
                 break;
               case "bool":
-                val = _decodeMap<String, bool>(value);
+                val = _decodeMap<int, bool>(value);
+                break;
+              case "dynamic":
+                val = _decodeMap<int, dynamic>(value);
                 break;
               default:
                 throw ("Invalid map value type");
@@ -220,7 +223,10 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
                 val = _decodeMap<double, int>(value);
                 break;
               case "bool":
-                val = _decodeMap<String, bool>(value);
+                val = _decodeMap<double, bool>(value);
+                break;
+              case "dynamic":
+                val = _decodeMap<double, dynamic>(value);
                 break;
               default:
                 throw ("Invalid map value type");
@@ -301,12 +307,14 @@ List<T> _decodeList<T>(dynamic value) {
         val.add(_decodeDouble(el) as T);
       } else if (T == bool) {
         val.add(_decodeBool(el) as T);
+      } else if (T == dynamic) {
+        val.add(el as T);
       }
     });
   } catch (e) {
-    throw ("Can not decode list $value");
+    throw ("Can not decode list value $value");
   }
-  print("VAL $val");
+  //print("VAL $val");
   return val;
 }
 
