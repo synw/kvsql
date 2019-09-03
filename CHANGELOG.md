@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1
+
+- Add support for boolean type
+- Allow dynamic list and map values
+- Fix in case of empty list value
+- Add a quiet parameter to selectSync
+- Add an example for persistant state
+
 ## 0.2.0
 
 - **Major change**: the methods are now type safe and require a type to be declared: ex: `store.insert<int>("key", 3)`

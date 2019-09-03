@@ -2,7 +2,7 @@ name: kvsql
 author: synw <ansterj@gmail.com>
 description: A type safe key/value store backed by Sqlite. It has methods to handle high throughput updates.
 homepage: https://github.com/synw/kvsql
-version: 0.2.0
+version: 0.2.1
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
