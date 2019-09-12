@@ -211,11 +211,72 @@ class KvStore {
     }
   }
 
-  /// Count the keys in the store
+  /// Count all rows in the store
   Future<int> count() async {
     int n = 0;
+    if (inMemory == true) {
+      return _inMemoryStore.length;
+    }
     try {
-      n = await _db.count(table: "kvstore");
+      n = await _db.count(table: "kvstore", verbose: verbose);
+    } catch (e) {
+      throw ("Can not count keys in the store $e");
+    }
+    return n;
+  }
+
+  /// Count rows in the store that match the [where] expression
+  ///
+  /// Where is an sql clause statement. ex of where: 'key LIKE %something' or
+  /// 'type="integer"' or 'value > 2'. Available columns for this: key, value,
+  /// type and updated (a timestamp)
+  ///
+  /// **Note**: this function uses sql and does not work in memory. A query is
+  /// made each time to the database
+  Future<int> countWhere(String where) async {
+    int n = 0;
+    try {
+      n = await _db.count(table: "kvstore", where: where, verbose: verbose);
+    } catch (e) {
+      throw ("Can not count keys in the store $e");
+    }
+    return n;
+  }
+
+  /// Count keys starting with and expression
+  Future<int> countKeysStartsWith(String expression) async {
+    int n = 0;
+    if (inMemory) {
+      _inMemoryStore.forEach((k, dynamic v) {
+        if (k.startsWith(expression)) {
+          ++n;
+        }
+        return n;
+      });
+    }
+    try {
+      final where = "key LIKE $expression%";
+      n = await _db.count(table: "kvstore", where: where, verbose: verbose);
+    } catch (e) {
+      throw ("Can not count keys in the store $e");
+    }
+    return n;
+  }
+
+  /// Count keys ending with and expression
+  Future<int> countKeysEndssWith(String expression) async {
+    int n = 0;
+    if (inMemory) {
+      _inMemoryStore.forEach((k, dynamic v) {
+        if (k.startsWith(expression)) {
+          ++n;
+        }
+        return n;
+      });
+    }
+    try {
+      final where = "key LIKE $expression%";
+      n = await _db.count(table: "kvstore", where: where, verbose: verbose);
     } catch (e) {
       throw ("Can not count keys in the store $e");
     }
