@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:kvsql/exceptions.dart';
 
 /// encoding format for database row reprensentation
 class DatabaseEncodedRow {
@@ -31,11 +32,11 @@ List<String> _inferMapTypeToString<T>() {
   final bs = T.toString();
   final t = bs.replaceFirst("Map<", "");
   if (t.contains("Map")) {
-    throw ("A map value can not be another map");
+    throw InvalidTypeException("A map value can not be another map");
   }
   final l = t.split(",");
   if (l[1].contains("List")) {
-    throw ("A map value can not be a list");
+    throw InvalidTypeException("A map value can not be a list");
   }
   l[1] = l[1].replaceAll(">", "");
   final k = l[0].trim();
@@ -45,14 +46,13 @@ List<String> _inferMapTypeToString<T>() {
 
 String _inferListTypeToString<T>() {
   final bs = T.toString();
-  var t = bs.replaceFirst("List<", "");
+  final t = bs.replaceFirst("List<", "");
   if (t.contains("List")) {
-    throw ("A list value type can not be another list");
+    throw InvalidTypeException("A list value type can not be another list");
   } else if (t.contains("Map")) {
-    throw ("A list value type can not be a map");
+    throw InvalidTypeException("A list value type can not be a map");
   }
-  t = t.replaceFirst(">", "");
-  return t;
+  return t.replaceFirst(">", "");
 }
 
 /// Encode a value to be stored as a string
@@ -160,7 +160,7 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
             val = _decodeList<dynamic>(value);
             break;
           default:
-            throw ("Invalid list type $listTypeStr");
+            throw InvalidTypeException("Invalid list type $listTypeStr");
         }
       } catch (e) {
         rethrow;
@@ -187,7 +187,7 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
                 val = _decodeMap<String, dynamic>(value);
                 break;
               default:
-                throw ("Invalid map value type");
+                throw InvalidTypeException("Invalid map value type");
             }
             break;
           case "int":
@@ -208,7 +208,7 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
                 val = _decodeMap<int, dynamic>(value);
                 break;
               default:
-                throw ("Invalid map value type");
+                throw InvalidTypeException("Invalid map value type");
             }
             break;
           case "double":
@@ -229,22 +229,24 @@ T decodeFromTypeStr<T>(dynamic value, String typeStr, String listTypeStr,
                 val = _decodeMap<double, dynamic>(value);
                 break;
               default:
-                throw ("Invalid map value type");
+                throw InvalidTypeException("Invalid map value type");
             }
             break;
           default:
-            throw ("Invalid map key type");
+            throw InvalidTypeException("Invalid map key type");
         }
       } catch (e) {
         rethrow;
       }
       break;
     default:
-      throw ("Type string $typeStr not known for value $value");
+      throw UnknownValueException(
+          "Type string $typeStr not known for value $value");
   }
   if (T != dynamic) {
     if (!(val is T)) {
-      throw ("Value is of type ${val.runtimeType} and should be $T");
+      throw WrongWalueTypeException(
+          "Value is of type ${val.runtimeType} and should be $T");
     }
   }
   final endVal = val as T;
@@ -265,7 +267,7 @@ bool _decodeBool(dynamic value) {
       res = false;
       break;
     default:
-      throw ("Wrong value for boolean: $value");
+      throw WrongWalueTypeException("Wrong value for boolean: $value");
   }
   return res;
 }
@@ -275,7 +277,7 @@ int _decodeInt(dynamic value) {
   try {
     val = int.parse(value.toString());
   } catch (e) {
-    throw ("Can not parse integer $value");
+    throw InvalidTypeException("Can not parse integer $value");
   }
   return val;
 }
@@ -285,7 +287,7 @@ double _decodeDouble(dynamic value) {
   try {
     val = double.parse(value.toString());
   } catch (e) {
-    throw ("Can not parse integer $value");
+    throw InvalidTypeException("Can not parse integer $value");
   }
   return val;
 }
@@ -312,7 +314,7 @@ List<T> _decodeList<T>(dynamic value) {
       }
     });
   } catch (e) {
-    throw ("Can not decode list value $value");
+    throw DecodingException("Can not decode list value $value");
   }
   //print("VAL $val");
   return val;
@@ -324,7 +326,7 @@ Map<K, V> _decodeMap<K, V>(dynamic value) {
     final jsonDecoded = json.decode(value.toString()) as Map<String, dynamic>;
     val = Map<K, V>.from(jsonDecoded);
   } catch (e) {
-    throw ("Can not decode map $value");
+    throw DecodingException("Can not decode map $value");
   }
   return val;
 }

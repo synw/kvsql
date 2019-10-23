@@ -4,7 +4,7 @@ import 'package:sqlcool/sqlcool.dart';
 import 'package:kvsql/kvsql.dart';
 import 'base.dart';
 
-void main() async {
+Future<void> main() async {
   await setup();
 
   final db = Db();
@@ -104,7 +104,7 @@ void main() async {
 
     test("select string sync", () async {
       await memStore.put<String>("k", "v").then((_) async {
-        final insertedVal = await memStore.selectSync<String>("k");
+        final insertedVal = memStore.selectSync<String>("k");
         expect(insertedVal is String, true);
         expect(insertedVal, "v");
       });
@@ -113,7 +113,7 @@ void main() async {
 
     test("select int sync", () async {
       await memStore.put<int>("k_int", 1).then((_) async {
-        final insertedVal = await memStore.selectSync<int>("k_int");
+        final insertedVal = memStore.selectSync<int>("k_int");
         expect(insertedVal is int, true);
         expect(insertedVal, 1);
       });
@@ -122,7 +122,7 @@ void main() async {
 
     test("select double sync", () async {
       await memStore.put<double>("k_double", 1.0).then((_) async {
-        final insertedVal = await memStore.selectSync<double>("k_double");
+        final insertedVal = memStore.selectSync<double>("k_double");
         expect(insertedVal is double, true);
         expect(insertedVal, 1.0);
       });
@@ -131,7 +131,7 @@ void main() async {
 
     test("select list sync", () async {
       await memStore.put<List<int>>("k_list", [1, 2, 3]).then((_) async {
-        final insertedVal = await memStore.selectSync<List<int>>("k_list");
+        final insertedVal = memStore.selectSync<List<int>>("k_list");
         expect(insertedVal is List<int>, true);
         expect(insertedVal, [1, 2, 3]);
       });
@@ -141,8 +141,7 @@ void main() async {
     test("select map sync", () async {
       await memStore.put<Map<String, int>>(
           "k_map", <String, int>{"1": 1, "2": 2}).then((_) async {
-        final insertedVal =
-            await memStore.selectSync<Map<String, int>>("k_map");
+        final insertedVal = memStore.selectSync<Map<String, int>>("k_map");
         expect(insertedVal is Map<String, int>, true);
         expect(insertedVal, <String, int>{"1": 1, "2": 2});
       });

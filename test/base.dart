@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 Directory directory;
@@ -6,7 +7,8 @@ const MethodChannel channel = MethodChannel('com.tekartik.sqflite');
 final List<MethodCall> log = <MethodCall>[];
 bool setupDone = false;
 
-void setup() async {
+Future<void> setup() async {
+  WidgetsFlutterBinding.ensureInitialized();
   if (setupDone) {
     return;
   }
@@ -22,7 +24,7 @@ void setup() async {
         break;
       case "query":
         if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+            'SELECT key,value,type,list_type,map_key_type,map_value_type '
                 'FROM kvstore WHERE key="k"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
@@ -36,7 +38,7 @@ void setup() async {
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+            'SELECT key,value,type,list_type,map_key_type,map_value_type '
                 'FROM kvstore WHERE key="k_int"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
@@ -50,7 +52,7 @@ void setup() async {
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+            'SELECT key,value,type,list_type,map_key_type,map_value_type '
                 'FROM kvstore WHERE key="k_double"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
@@ -64,7 +66,7 @@ void setup() async {
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+            'SELECT key,value,type,list_type,map_key_type,map_value_type '
                 'FROM kvstore WHERE key="k_list"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
@@ -78,7 +80,7 @@ void setup() async {
           ];
           return res;
         } else if (methodCall.arguments["sql"] ==
-            'SELECT key,value,type,list_type,map_key_type,map_value_type ' +
+            'SELECT key,value,type,list_type,map_key_type,map_value_type '
                 'FROM kvstore WHERE key="k_map"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{

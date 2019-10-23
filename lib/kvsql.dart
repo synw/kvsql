@@ -1,4 +1,4 @@
 library kvsql;
 
-export 'src/store.dart';
 export 'src/schema.dart';
+export 'src/store.dart';
