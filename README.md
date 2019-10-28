@@ -1,6 +1,8 @@
 # Kvsql
 
 [![pub package](https://img.shields.io/pub/v/kvsql.svg)](https://pub.dartlang.org/packages/kvsql)
+[![Build Status](https://travis-ci.org/synw/kvsql.svg?branch=master)](https://travis-ci.org/synw/kvsql)
+[![Coverage Status](https://coveralls.io/repos/github/synw/kvsql/badge.svg?branch=master)](https://coveralls.io/github/synw/kvsql?branch=master)
 
 A type safe key/value store for Flutter backed by Sqlite. Powered by [Sqlcool](https://github.com/synw/sqlcool).
 
