@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:kvsql/exceptions.dart';
+
+import 'exceptions.dart';
 
 /// encoding format for database row reprensentation
 class DatabaseEncodedRow {

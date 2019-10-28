@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:kvsql/exceptions.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:sqlcool/sqlcool.dart';
 
+import 'exceptions.dart';
 import 'schema.dart';
 import 'serializers.dart';
 
