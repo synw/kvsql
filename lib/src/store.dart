@@ -25,6 +25,7 @@ class KvStore {
   final bool inMemory;
 
   final Completer _readyCompleter = Completer<void>();
+  bool _isReady = false;
 
   Db _db;
   final _pushFeed = StreamController<List<dynamic>>.broadcast();
@@ -50,7 +51,10 @@ class KvStore {
   }
 
   /// The ready callback
-  Future get onReady => _readyCompleter.future;
+  Future<void> get onReady => _readyCompleter.future;
+
+  /// Is the store ready
+  bool get isReady => _isReady;
 
   /// Count all rows in the store
   Future<int> count() async {
@@ -254,6 +258,7 @@ class KvStore {
 
     /// Run the queue for the [push] method
     unawaited(_runQueue());
+    _isReady = true;
     _readyCompleter.complete();
   }
 
