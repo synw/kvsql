@@ -65,7 +65,7 @@ class KvStore {
     try {
       n = await _db.count(table: "kvstore", verbose: verbose);
     } catch (e) {
-      throw ReadQueryException("Can not count keys in the store $e");
+      rethrow;
     }
     return n;
   }
@@ -85,7 +85,7 @@ class KvStore {
       final where = "key LIKE $expression%";
       n = await _db.count(table: "kvstore", where: where, verbose: verbose);
     } catch (e) {
-      throw ReadQueryException("Can not count keys in the store $e");
+      rethrow;
     }
     return n;
   }
@@ -105,7 +105,7 @@ class KvStore {
       final where = "key LIKE $expression%";
       n = await _db.count(table: "kvstore", where: where, verbose: verbose);
     } catch (e) {
-      throw ReadQueryException("Can not count keys in the store $e");
+      rethrow;
     }
     return n;
   }
@@ -123,7 +123,7 @@ class KvStore {
     try {
       n = await _db.count(table: "kvstore", where: where, verbose: verbose);
     } catch (e) {
-      throw ReadQueryException("Can not count keys in the store $e");
+      rethrow;
     }
     return n;
   }
@@ -138,7 +138,7 @@ class KvStore {
           table: "kvstore", where: 'key="$key"', verbose: verbose);
       if (inMemory == true) _inMemoryStore.remove(key);
     } catch (e) {
-      throw WriteQueryException("Can not delete data $e");
+      rethrow;
     }
     return deleted;
   }
@@ -164,7 +164,7 @@ class KvStore {
         }
       }
     } catch (e) {
-      throw ReadQueryException("Can not check hasKey in the store $e");
+      rethrow;
     }
     return has;
   }
@@ -317,12 +317,13 @@ class KvStore {
           columns: "key,value,type,list_type,map_key_type,map_value_type",
           where: 'key="$key"',
           verbose: verbose);
+      print("QRES $qres");
       if (qres.isEmpty) {
         return null;
       }
       res = qres[0];
     } catch (e) {
-      throw ReadQueryException("Can not select data $e");
+      rethrow;
     }
     return res;
   }
@@ -337,31 +338,28 @@ class KvStore {
       throw ArgumentError(
           "The value is of type ${value.runtimeType} and should be $T");
     }
+
+    if (inMemory == true) {
+      _inMemoryStore[key] = value;
+    }
+    DatabaseEncodedRow encoded;
     try {
-      if (inMemory == true) {
-        _inMemoryStore[key] = value;
-      }
-      DatabaseEncodedRow encoded;
-      try {
-        encoded = encode<T>(value);
-      } catch (e) {
-        throw EncodingException("Encoding $value failed: $e");
-      }
-      final Map<String, String> row = <String, String>{
-        "key": key,
-        "value": encoded.value,
-        "type": encoded.type,
-        "list_type": encoded.listType,
-        "map_key_type": encoded.mapKeyType,
-        "map_value_type": encoded.mapValueType
-      };
-      await _db
-          .upsert(table: "kvstore", row: row, verbose: verbose)
-          .catchError((dynamic e) {
-        throw WriteQueryException("Can not update store $e");
-      });
+      encoded = encode<T>(value);
     } catch (e) {
-      throw WriteQueryException("Can not upsert data $e");
+      throw EncodingException("Encoding $value failed: $e");
+    }
+    final Map<String, String> row = <String, String>{
+      "key": key,
+      "value": encoded.value,
+      "type": encoded.type,
+      "list_type": encoded.listType,
+      "map_key_type": encoded.mapKeyType,
+      "map_value_type": encoded.mapValueType
+    };
+    try {
+      await _db.upsert(table: "kvstore", row: row, verbose: verbose);
+    } catch (e) {
+      rethrow;
     }
   }
 }
