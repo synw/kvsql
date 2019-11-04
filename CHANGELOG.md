@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Update dependencies
+- Add `count` methods with expresssions
+- Better exceptions management
+- Add an `isReady` getter to `KvStore`
+
 ## 0.2.1
 
 - Add support for boolean type
