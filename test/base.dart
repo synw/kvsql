@@ -42,7 +42,7 @@ Future<void> setup() async {
                 'FROM kvstore WHERE key="k_int"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
-              "key": "k",
+              "key": "k_int",
               "value": "1",
               "type": "int",
               "list_type": null,
@@ -56,7 +56,7 @@ Future<void> setup() async {
                 'FROM kvstore WHERE key="k_double"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
-              "key": "k",
+              "key": "k_double",
               "value": "1.0",
               "type": "double",
               "list_type": null,
@@ -70,7 +70,7 @@ Future<void> setup() async {
                 'FROM kvstore WHERE key="k_list"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
-              "key": "k",
+              "key": "k_list",
               "value": "1,2,3",
               "type": "List",
               "list_type": "int",
@@ -84,12 +84,26 @@ Future<void> setup() async {
                 'FROM kvstore WHERE key="k_map"') {
           final res = <Map<String, dynamic>>[
             <String, dynamic>{
-              "key": "k",
+              "key": "k_map",
               "value": '{"1":1,"2":2}',
               "type": "Map",
               "list_type": null,
               "map_key_type": "String",
               "map_value_type": "int"
+            }
+          ];
+          return res;
+        } else if (methodCall.arguments["sql"] ==
+            'SELECT key,value,type,list_type,map_key_type,map_value_'
+                'type FROM kvstore WHERE key="k_bool"') {
+          final res = <Map<String, dynamic>>[
+            <String, dynamic>{
+              "key": "k_bool",
+              "value": 'true',
+              "type": "bool",
+              "list_type": null,
+              "map_key_type": null,
+              "map_value_type": null
             }
           ];
           return res;

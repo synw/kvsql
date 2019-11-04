@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kvsql/src/serializers.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:sqlcool/sqlcool.dart';
 import 'package:kvsql/kvsql.dart';
@@ -54,6 +55,19 @@ Future<void> main() async {
         final insertedVal = await store.select<double>("k_double");
         expect(insertedVal is double, true);
         expect(insertedVal, 1.0);
+      });
+      return true;
+    });
+
+    test("put bool", () async {
+      await store.put<bool>("k_bool", true).then((_) async {
+        final insertedVal =
+            await store.select<bool>("k_bool").catchError((dynamic e) {
+          print("EXCEPTION $e / ${e.message}");
+          throw e;
+        });
+        expect(insertedVal is bool, true);
+        expect(insertedVal, true);
       });
       return true;
     });
@@ -146,6 +160,13 @@ Future<void> main() async {
         expect(insertedVal, <String, int>{"1": 1, "2": 2});
       });
       return true;
+    });
+  });
+
+  group("exceptions", () {
+    test("encode row", () async {
+      final encoded = encode<dynamic>(null);
+      expect(encoded.type, "unknown");
     });
   });
 }
